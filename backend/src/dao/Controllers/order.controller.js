@@ -33,6 +33,12 @@ const verifyAndReduceStock = async (products) => {
 };
 
 // Crear una orden nueva
+/**
+ * Creates a new order with the given cartId, products, and totalAmount.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} The saved order.
+ */
 const createOrder = async (req, res) => {
     const {cartId} = req.params;
     try {

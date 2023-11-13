@@ -44,9 +44,9 @@ const NavBar = () => {
                     <Link to="/"> 
                         <Navbar.Brand>
                             <img
-                                src="https://cdn.cookielaw.org/logos/11821760-d248-4745-b43e-10d85e89e988/26bb751b-623f-4470-b49b-418dc2a25dd5/7d7429bf-a3fa-4705-858a-a22e570d2260/Logo_TaDa2.png" 
-                                width="30"
-                                height="30"
+                                src="https://media.tada.com.ar/static/img/es-AR/logo-aux-2.svg" 
+                                width="45"
+                                height="47"
                                 className="d-inline-block align-top"
                                 alt="Logo"
                             />

@@ -52,16 +52,12 @@ export const createCartLogic = async () => {
     
 
 export const cleanCart = async (req, res) => {
-    console.log('cleanCart');
-    const {cartId} = req.params
-    console.log('id', cartId)
+    const {id} = req.params
     try {
-        const cart = await cartModel.findById(cartId);
-        console.log('cart', cart)
+        const cart = await cartModel.findById(id);
         if (cart) {
             cart.products = [];
             await cart.save();
-            console.log('cart', cart)
             res.status(200).send({respuesta: 'ok', mensaje: cart})
         }
         else 
@@ -75,8 +71,6 @@ export const cleanCart = async (req, res) => {
 export const restartCart = async (cartId, products) => {
     try {
         const cart = await cartModel.findById(cartId);
-        console.log('cart en resta', cart)
-        console.log('products en resta', products)
         if (cart) {
             products.forEach(async (product) => {
                 const index = cart.products.findIndex(prod => prod.id_prod._id.toString() === product.id.toString());
@@ -148,6 +142,13 @@ export const removeProductbyId = async (req, res) => {
     }
 }
 
+/**
+ * Actualiza el carrito con los productos especificados en el cuerpo de la solicitud.
+ * @param {Object} req - Objeto de solicitud de Express.
+ * @param {Object} res - Objeto de respuesta de Express.
+ * @returns {Promise<void>} - Promesa que resuelve una respuesta HTTP.
+ * @throws {Error} - Si el carrito no se encuentra o si un producto no existe en la base de datos.
+ */
 export const updateCartWithProducts = async (req, res) => {
     const {cid} = req.params
     const {products} = req.body
