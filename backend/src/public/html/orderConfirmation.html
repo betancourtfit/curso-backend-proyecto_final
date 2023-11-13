@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Confirmación de Orden de Compra</title>
+  </head>
+  <body>
+    <h1>¡Gracias por su compra!</h1>
+    <p>Su número de orden de compra es: <strong>{{orderId}}</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Productos serán insertados aquí -->
+        {{productsRows}}
+      </tbody>
+    </table>
+    <p>El monto total de su compra es: <strong>{{totalAmount}}</strong></p>
+  </body>
+</html>
