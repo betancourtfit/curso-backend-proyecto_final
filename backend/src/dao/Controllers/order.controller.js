@@ -1,5 +1,5 @@
 import { OrderModel } from '../models/orders.models.js';
-import { cartController } from './cart.controller.js';
+// import { cartController } from './cart.controller.js';
 import { sendOrderConfirmationEmail } from '../../config/mailer.js';
 import { productModel } from '../models/products.models.js';
 
@@ -13,6 +13,7 @@ const generateUniqueCode = async () => {
         if (!existingOrder) {
             return code;
         }
+        console.log('Existing order found for code ', code);
     }
 };
 
@@ -22,10 +23,16 @@ const verifyAndReduceStock = async (products) => {
 
     for (let product of products) {
         const productInDb = await productModel.findById(product.id);
-        if (product.quantity <= productInDb.stock) {
-            productInDb.stock -= product.quantity;
-            await productInDb.save();
-            verifiedProducts.push(product);
+        if (productInDb) {
+            if (product.quantity <= productInDb.stock) {
+                productInDb.stock -= product.quantity;
+                await productInDb.save();
+                verifiedProducts.push(product);
+            } else {
+                throw new Error('Not enough stock');
+            }
+        } else {
+            throw new Error('Product not found');
         }
     }
 
@@ -43,12 +50,9 @@ const createOrder = async (req, res) => {
     const {cartId} = req.params;
     try {
         const orderCode = await generateUniqueCode();
-        console.log('req.body', req.body)
         let products = req.body.products;
         products = await verifyAndReduceStock(products);
         const totalAmount = req.body.totalAmount;
-        console.log('products', products)
-        console.log('totalAmount', totalAmount)
         const newOrder = new OrderModel({...req.body, orderCode, products});
         const savedOrder = await newOrder.save();
         if (savedOrder) {
@@ -56,7 +60,9 @@ const createOrder = async (req, res) => {
                 await cartController.restartCart(cartId, products);
                 await sendOrderConfirmationEmail(orderCode, products, totalAmount);
             } catch (error) {
-                console.log(error);
+                await OrderModel.findByIdAndDelete(savedOrder._id);
+                await cartController.restartCart(cartId, products, true);
+                return res.status(500).json({ message: error.message });
             }
         }
         res.status(201).json({ payload: savedOrder });
