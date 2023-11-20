@@ -48,7 +48,6 @@ const verifyAndReduceStock = async (products) => {
             });
         }
     }
-    console.log('Stock errors:', stockErrors);
     logStockErrors(stockErrors);
     return verifiedProducts;
 };
@@ -69,14 +68,11 @@ const createOrder = async (req, res) => {
         const totalAmount = req.body.totalAmount;
         const newOrder = new OrderModel({...req.body, orderCode, products});
         const savedOrder = await newOrder.save();
-        console.log('Order saved:', savedOrder);
         if (savedOrder) {
             try {
-                console.log('Restarting cart...', cartId, products)
                 await cartController.restartCart(cartId, products);
                 await cartController.restartCart(cartId, products);
                 const email = savedOrder.purchaser;
-            
                 console.log('Cart restarted');
                 console.log('Sending order confirmation email...', orderCode, products, totalAmount, email);
                 await sendOrderConfirmationEmail(orderCode, products, totalAmount, email);
