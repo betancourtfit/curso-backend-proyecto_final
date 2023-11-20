@@ -5,17 +5,21 @@ import { generateProductError } from '../../services/errors/info.js';
 import { generateProduct } from '../../utils/generateProduct.js'; // Asegúrate de que la ruta sea correcta
 
 
+
 /// en controller se hace normalmente se hace metodod HTTP + Modelo para referirse al nombre del controladr
 export const getProducts = async (req, res) => {
     const {limit, page, filter, sort} = req.query;
 
-    const pag = page ? page:1;
-    const lim = limit ? limit:10;
+    const pag = page ? parseInt(page):1;
+    const lim = limit ? parseInt(limit):10;
     const ord = sort === 'asc' ? 1 : -1;
 
     try {
         const prods = await productModel.paginate({filer: filter}, {limit: lim, page: pag, sort: {price: ord}});
         if(prods) {
+            // Construir las URLs para prevLink y nextLink
+            const buildUrl = (page) => `http://${req.headers.host}${req.baseUrl}?limit=${lim}&page=${page}&filter=${filter}&sort=${sort}`;
+
             const response = {
                 status: "success",
                 payload: prods.docs, // Resultado de los productos solicitados
@@ -25,13 +29,14 @@ export const getProducts = async (req, res) => {
                 page: prods.page,
                 hasPrevPage: prods.hasPrevPage,
                 hasNextPage: prods.hasNextPage,
-                prevLink: prods.hasPrevPage ? `http://${req.headers.host}${req.baseUrl}?limit=${limit}&page=${result.prevPage}&category=${category}&sort=${sort}` : null,
-                nextLink: prods.hasNextPage ? `http://${req.headers.host}${req.baseUrl}?limit=${limit}&page=${result.nextPage}&category=${category}&sort=${sort}` : null
+                prevLink: prods.hasPrevPage ? buildUrl(prods.prevPage) : null,
+                nextLink: prods.hasNextPage ? buildUrl(prods.nextPage) : null
             };
             return res.status(200).send(response)
         }
         res.status(404).send({message: 'No se encontraron productos'})
     } catch (error) {
+        console.log(error);
         res.status(500).send({message: 'Error al obtener los productos'})
     }
 }

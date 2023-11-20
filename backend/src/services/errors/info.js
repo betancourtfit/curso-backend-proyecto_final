@@ -16,3 +16,19 @@ export const generateProductError = (product) => {
     * stock : needs to be a number, received ${product.stock}
     * category : needs to be a string, received ${product.category}`;
 }
+
+export const generateCartError = (cartId) => {
+    return `Carrito no encontrado. No se pudo encontrar un carrito con el ID: ${cartId}`;
+}
+
+export const generateProductNotFoundError = (productId) => {
+    return `Producto no encontrado. No se pudo encontrar un producto con el ID: ${productId}`;
+};
+
+export const generateDatabaseError = (errorDetail) => {
+    return `Error de base de datos: ${errorDetail}`;
+};
+
+export const generateStockError = (productId, requestedQuantity, availableStock) => {
+    return `Cantidad insuficiente en stock. Producto ID: ${productId}, Cantidad solicitada: ${requestedQuantity}, Stock disponible: ${availableStock}`;
+};

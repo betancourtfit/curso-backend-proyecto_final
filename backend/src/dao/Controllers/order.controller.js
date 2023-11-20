@@ -2,6 +2,10 @@ import { OrderModel } from '../models/orders.models.js';
 import { cartController } from './cart.controller.js';
 import { sendOrderConfirmationEmail } from '../../config/mailer.js';
 import { productModel } from '../models/products.models.js';
+import CustomError from '../../services/errors/CustomError.js';
+import EError from '../../services/errors/enum.js';
+import { generateStockError, generateProductNotFoundError } from '../../services/errors/info.js'
+import { logStockErrors } from '../../services/errors/log.js';
 
 //Generar un código unico de 6 digitos que se usará como código de orden en el parametro "code" de la orden
 const generateUniqueCode = async () => {
@@ -20,6 +24,7 @@ const generateUniqueCode = async () => {
 // Crear una función para verificar y reducir el stock de cada producto
 const verifyAndReduceStock = async (products) => {
     let verifiedProducts = [];
+    let stockErrors = [];
 
     for (let product of products) {
         const productInDb = await productModel.findById(product.id);
@@ -29,13 +34,22 @@ const verifyAndReduceStock = async (products) => {
                 await productInDb.save();
                 verifiedProducts.push(product);
             } else {
-                throw new Error('Not enough stock');
+                // Registro de error de stock insuficiente
+                const errorInfo = generateStockError(product.id, product.quantity, productInDb.stock);
+                console.error("StockError:", errorInfo);
+                stockErrors.push(errorInfo);
             }
         } else {
-            throw new Error('Product not found');
+            throw CustomError.createError({
+                name: "ProductNotFoundError",
+                cause: generateProductNotFoundError(product.id),
+                message: "Producto no encontrado.",
+                code: EError.NOT_FOUND_ERROR
+            });
         }
     }
-
+    console.log('Stock errors:', stockErrors);
+    logStockErrors(stockErrors);
     return verifiedProducts;
 };
 
@@ -74,6 +88,7 @@ const createOrder = async (req, res) => {
         }
         res.status(201).json({ payload: savedOrder });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };
