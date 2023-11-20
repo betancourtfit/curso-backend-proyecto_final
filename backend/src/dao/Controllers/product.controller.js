@@ -132,6 +132,11 @@ export const createMockProduct = async (req, res) => {
 
 export const createMockProducts = async (req, res) => {
     const numberOfProducts = parseInt(req.params.number, 10);
+    // Check if numberOfProducts exceeds the maximum limit
+    if (numberOfProducts > 100) {
+        numberOfProducts = 100
+    }
+
     try {
         const products = [];
         for (let i = 0; i < numberOfProducts; i++) {

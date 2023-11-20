@@ -1,41 +1,47 @@
-# **Tercera entrega de tu Proyecto final**
+# **Entrega Mocking y manejo de errores**
 
-## Mejorando la arquitectura del servidor
+### Mocking con faker para creacion de productos
 
-### Middleware de protección de rutas
 
-✓ Las rutas Home, Categorias, Checkout y Cart estan protegidas por autenticacion y autorización a traves de PrivateRoute que evalua a partir de AuthConext que almacena si la sesion está iniciada o no y el rol del usuario. Todo se genera a partir del login
+✓ El endpoint POST 'api/products/mockingproducts' genera un producto nuevo con faker
 
-✓La Ruta Login al renderizar evaluar si existe una cookie válida de user y lo redirije al login
+✓El endpoint POST 'api/products/mockingproducts/:number' genera una cantidad n de productos segun number
 
-✓Todos los API endpoints estan protegidos por middleware autentificacion y autorización. En el caso de la home, chat, categorias, carrito y checkout exclusivos para usuarios. 
+✓Los endpoints de POST y PUT estan restringidos a perfiles con rol:admin por lo cual se debe acceder con email: beta.juanc@gmail.com y password: 123456 y la autenticacion es con jwtCookie
 
-✓”Sólo el usuario puede agregar productos a su carrito”: La estrategia es que el endpoint ademas de la autenticacion y la autorización, añade los productos a partir de cart_id disponible en el token de la cookie. Por ende, si la cookie es modificada, no pasará la autenticación 
 
-### Generación de Ticket de Orden a partir del carrito (”api/orders/checkout”)
+### CUSTOM ERRORS
 
-✓Se crea una nueva collection llamada Order que posee:
+✓Fueron añadidos custom errors para
 
-- Monto de la compra
-- Cantidad total de la compra
-- Array de productos incluyendo de cada uno el id, code, price y title. No se usa Ref para evitar que posibles cambios de precio en los productos modifique las órdenes ya gener
-- User_id Ref: Este atributo si se vincula vía ref para permitir que la información del usuario asociado sea dinámica y evitar duplicación de información almacenada.
-- order_code: Es un código único de 6 digitos numéricos generado automáticamente de forma aleatoria en el OrderController y se valida contra MongoDB en caso de que se repita se genera uno nuevo.
-- status: Se inicia automáticamente en “Pendiente de pago” a la espera de la confirmación dle pago
-- address: dirección de entrega que viene del formulario del checkout
-- created_at: dato en formato date_time que se genera al momento de la creación del documento de la orden en mongoose
-- purchaser: mail del usuario comprador que se completa a partie del populare asociado el user_id ref
+- producto no encontrado
+- Carrito no encontrado
+- Campos faltante en la creacion de producto o de usuario
+- Errores de conexion con mongodb
+- Productos con stock insuficiente cuando se genera la orden (incluye un log con persistencia local)
 
-✓En la ruta de “/checkout” se renderiza el listado de items del carrito, con el monto total y se solicita la dirección de entrega + la confirmación de los TyC para habilitar el boton de creación de la orden
+✓Para testear los custom error de campo faltante en product o user creation se pueden usar POST en '/api/products/' o '/api/users/signup' excluyendo alguno de los campos obligatorios, dejo ejemplos:
+User
+{
+    "first_name": "lalo",
+    "last_name": "landa",
+    "age": 35
+    "email": "lalolanda20@noreply.con",
+    "password": "123456"
+}
+Product
+{
+    "title": "Goose Island Lager",
+    "description": "473ml",
+    "code": "abc9",
+    "price": 399,
+    "stock": 10,
+    "category": "Destilados"
+}
 
-✓Cuando el usuario solicita la creación de la orden, se hace una evaluación producto por producto de la disponibilidad de stock en mongodb para completar la cantidad solicita, en caso de que no haya suficiente, lo deja en el carrito del usuario y en caso de que si haya disponibilidad hace la resta del stock en mongodb
+✓Para testear Stock Faltante habilite desde el frontend añadir más productos al carrito de lo disponible en stock, el producto "Genérico Granito Guantes" o "Cereveza 27 easy" tiene un stock asignado de 2 unidades asi que si se arma una orden con mas cantidad, al momento de la generacion de la orden lo va a dejar en el cart y generasr en consola y en stockErrors.log  va a dejar detalle del faltante mientras avanza con la oden y envia confirmacion por mail.
 
-✓Al finalizar exitosamente la creación de la orden se dan dos procesos:
 
-- Se renderiza en pantalla un mensaje de Orden creada incluyendo el _id interno de mongodb del documento de la orden
-- Se envía un mail de confirmación de pedido al usuario con nodemailer que incluye una lista de los productos confirmados, monto total y order_code
-
-### Pendientes
-
-- [ ]  Tengo un gap enorme en términos de gestión de errores principalmente en el backend, cada vez que se genera un error me cuesta muchísimo en primer lugar poder rastrear el punto exacto en el que se genera y en segundo lugar los detalles del mismo
-- [ ]  Incluir las imágenes de productos
+### Uso de nodemailer
+✓La ordenes cuando se confirman se genera un mail de confirmacion de la orden que incluye detalle de productos y monto
+✓En el registro de usuarios, se incluyó una validación de mail, se debe ingresar el codigo enviado por mail al usuario para habilitar el proceso de compra
