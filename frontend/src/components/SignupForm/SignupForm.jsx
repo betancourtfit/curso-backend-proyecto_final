@@ -49,27 +49,21 @@ function SignupForm() {
         }
     })
         .then(data => {
-            console.log(data);
-            // Limpiar formulario
-            setEmail('');
-            setPassword('');
-            setAge('');
-            setfirst_name('');
-            setlast_name('');
-            // Mostrar alerta de éxito
+            // Solicitar código de verificación
             Swal.fire({
-                title: 'Registro exitoso',
-                text: 'Has sido registrado exitosamente',
-                icon: 'success',
-                confirmButtonText: 'Ir a Login'
+                title: 'Verifica tu Email',
+                input: 'text',
+                inputLabel: 'Ingrese el código de verificación enviado a su email',
+                showCancelButton: true,
+                confirmButtonText: 'Verificar',
+                cancelButtonText: 'Cancelar',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    navigate('/login');
+                    verifyCode(result.value); // Función para verificar el código
                 }
             });
         })
         .catch(error => {
-            console.error(error);
             // Mostrar alerta de error
             Swal.fire(
                 'Error de registro',
@@ -78,6 +72,43 @@ function SignupForm() {
             );
         });
     };
+
+    /// FUNCION PARA LA VERIFICACION DEL CODIGO DE EMAIL
+    const verifyCode = (code) => {
+        fetch('http://localhost:4000/api/users/verify-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, verificationCode: code })
+        })
+        .then(response => {
+            if (response.status === 200) {
+                return response.json();
+            } else {
+                return response.json().then(data => {
+                    throw new Error(data.mensaje || "Error desconocido al verificar el código");
+                });
+            }
+        })
+        .then(data => {
+            Swal.fire(
+                'Verificación exitosa',
+                'Su email ha sido verificado exitosamente.',
+                'success'
+            ).then(() => {
+                navigate('/login');
+            });
+        })
+        .catch(error => {
+            Swal.fire(
+                'Error en la verificación',
+                error.message,
+                'error'
+            );
+        });
+    };
+    
 
 
     return (

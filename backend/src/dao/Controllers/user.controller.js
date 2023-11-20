@@ -1,4 +1,7 @@
 import { userModel } from "../models/user.models.js";
+import CustomError from "../../services/errors/CustomError.js";
+import EError  from "../../services/errors/enum.js";
+import { generateUserError } from "../../services/errors/info.js";
 
 // controladores del modelo de usuarios
 export const getUsers = async (req, res) => {
@@ -36,12 +39,43 @@ export const getUser = async (req, res) => {
     }
 }
 
-export const createUser = async (req, res) => {
-    const {name, lastName, email, password, role} = req.body;
+const findUserByEmail = async (email) => {
+    return await userModel.findOne({ email: email });
+};
+
+export const getUserByEmail = async (req, res) => {
+    console.log('req.body', req);
+    const email = req;
+    console.log('email get', email);
 
     try {
-        const user = await userModel.create({name, lastName, email, password, role});
+        // const user = await userModel.findOne({ email: email });
+        const user = await findUserByEmail(email);
+        console.log('user getbymail', user);
+        if(user) {
+            return res.status(200).send(user)
+        }
+        res.status(404).send({message: 'No se encontró el usuario'})
+    } catch (error) {
+        res.status(500).send({message: 'Error al obtener el usuario'})
+    }
+}
 
+export const createUser = async (req, res) => {
+    console.log('req.body.', req);
+    const {first_name, last_name, email, password, age} = req;
+    try {
+        if(!first_name|| !last_name || !email || !password || !age) {
+            console.log("Missing fields");
+            CustomError.createError({
+                name: "Use creation error",
+                cause: generateUserError({first_name, last_name, email, password, age}),
+                message: "Missing fields",
+                code: EError.INVALID_TYPES_ERROR
+            })
+        }
+        const user = await userModel.create({first_name, last_name, email, password, age});
+        console.log('user cre', user);
         if(user) {
             return res.status(201).send(user)
         }
@@ -122,5 +156,6 @@ export const userController = {
     userSignup,
     failRegister,
     github,
-    githubCallback
+    githubCallback,
+    getUserByEmail
 }

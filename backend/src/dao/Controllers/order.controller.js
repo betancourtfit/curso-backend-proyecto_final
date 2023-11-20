@@ -1,5 +1,5 @@
 import { OrderModel } from '../models/orders.models.js';
-// import { cartController } from './cart.controller.js';
+import { cartController } from './cart.controller.js';
 import { sendOrderConfirmationEmail } from '../../config/mailer.js';
 import { productModel } from '../models/products.models.js';
 
@@ -55,10 +55,17 @@ const createOrder = async (req, res) => {
         const totalAmount = req.body.totalAmount;
         const newOrder = new OrderModel({...req.body, orderCode, products});
         const savedOrder = await newOrder.save();
+        console.log('Order saved:', savedOrder);
         if (savedOrder) {
             try {
+                console.log('Restarting cart...', cartId, products)
                 await cartController.restartCart(cartId, products);
-                await sendOrderConfirmationEmail(orderCode, products, totalAmount);
+                await cartController.restartCart(cartId, products);
+                const email = savedOrder.purchaser;
+            
+                console.log('Cart restarted');
+                console.log('Sending order confirmation email...', orderCode, products, totalAmount, email);
+                await sendOrderConfirmationEmail(orderCode, products, totalAmount, email);
             } catch (error) {
                 await OrderModel.findByIdAndDelete(savedOrder._id);
                 await cartController.restartCart(cartId, products, true);

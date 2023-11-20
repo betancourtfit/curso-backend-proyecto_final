@@ -13,8 +13,8 @@ const Checkout = () => {
     const [validated, setValidated] = useState(false);
     const [formularioEnviado, setFormularioEnviado] = useState(false);
     const [dataCarrito, setDataCarrito] = useState({ cart: { products: [] } });
-    const [cartId, setCartId] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const obtenerCarrito = async () => {
@@ -36,62 +36,83 @@ const Checkout = () => {
         obtenerCarrito();
     }, []);
 
-    const handleSubmit = async (event) => {
-        const form = event.currentTarget;
-        if (form.checkValidity() === false) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
 
-        setValidated(true);
-        event.preventDefault();
-        setError('');
-
-        if (address && termsAccepted) {
-            const token = Cookies.get('jwtCookie');
-            const user_id = jwtDecode(token).user._id;
-            console.log('user_id', user_id);
-            const cart_id = jwtDecode(token).user.cart;
-            console.log('cart_id', cart_id);
-            setCartId(cart_id);
-            const order = {
-                totalAmount: dataCarrito.totalAmount,
-                totalQuantity: dataCarrito.totalQuantity,
-                address: address,
-                user_id: user_id,
-                products: dataCarrito.cart.products.map((prod) => ({
-                    price: prod.id_prod.price,
-                    quantity: prod.quantity,
-                    title: prod.id_prod.title,
-                    code: prod.id_prod.code,
-                    id: prod.id_prod._id,
-                })),
-            };
-            console.log('order', order);
-
-            try {
-                const response = await fetch(`http://localhost:4000/api/orders/${cart_id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(order),
-                });
-                if (!response.ok) {
-                    throw new Error('Hubo un error al crear la orden');
-                } else {
-                const data = await response.json();
-                console.log('data', data);
-                setOrderId(data.payload._id);
-                setFormularioEnviado(true);
+        useEffect(() => {
+            const obtenerCarrito = async () => {
+                try {
+                    console.log('Obteniendo carrito...');
+                    const token = Cookies.get('jwtCookie');
+                    const cart_id = jwtDecode(token).user.cart;
+                    console.log('cart_id', cart_id);
+                    const respuesta = await fetch(`http://localhost:4000/api/carts/${cart_id}`);
+                    const datos = await respuesta.json();
+                    console.log('datos', datos);
+                    setDataCarrito(datos.payload);
+                    console.log('Carrito obtenido con éxito:', datos.payload);
+                } catch (error) {
+                    console.error('Hubo un error al obtener el carrito:', error);
                 }
-            } catch (error) {
-                console.error('Hubo un error al crear la orden:', error);
-                setError('Hubo un error al crear la orden');
+            };
+
+            obtenerCarrito();
+        }, []);
+
+        const handleSubmit = async (event) => {
+            const form = event.currentTarget;
+            if (form.checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
             }
-        }
-    };
+
+            setValidated(true);
+            event.preventDefault();
+            setError('');
+
+            if (address && termsAccepted) {
+                const token = Cookies.get('jwtCookie');
+                const user_id = jwtDecode(token).user._id;
+                const cart_id = jwtDecode(token).user.cart;
+                const order = {
+                    totalAmount: dataCarrito.totalAmount,
+                    totalQuantity: dataCarrito.totalQuantity,
+                    address: address,
+                    user_id: user_id,
+                    products: dataCarrito.cart.products.map((prod) => ({
+                        price: prod.id_prod.price,
+                        quantity: prod.quantity,
+                        title: prod.id_prod.title,
+                        code: prod.id_prod.code,
+                        id: prod.id_prod._id,
+                    })),
+                };
+
+                try {
+                    setIsLoading(true); // Mostrar animación de espera
+                    const response = await fetch(`http://localhost:4000/api/orders/${cart_id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(order),
+                    });
+                    if (!response.ok) {
+                        throw new Error('Hubo un error al crear la orden');
+                    } else {
+                        const data = await response.json();
+                        console.log('data', data);
+                        setOrderId(data.payload._id);
+                        setFormularioEnviado(true);
+                    }
+                } catch (error) {
+                    console.error('Hubo un error al crear la orden:', error);
+                    setError('Hubo un error al crear la orden');
+                } finally {
+                    setIsLoading(false); // Ocultar animación de espera
+                }
+            }
+        };
+
 
     return (
         <>
@@ -134,11 +155,14 @@ const Checkout = () => {
                 </Button>
             </Form>
 
+            {isLoading && <p>Realizando pedido...</p>} {/* Mostrar animación de espera si isLoading es true */}
+
             {error && <p style={{ color: 'red' }}> {error} </p>}
 
             {orderId && <strong>¡Gracias por tu compra! Tu número de orden es {orderId} </strong>}
         </>
     );
 };
+
 
 export default Checkout;

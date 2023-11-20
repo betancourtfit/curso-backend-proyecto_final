@@ -1,4 +1,9 @@
 import { productModel } from '../models/products.models.js';
+import CustomError from '../../services/errors/CustomError.js';
+import EError from '../../services/errors/enum.js';
+import { generateProductError } from '../../services/errors/info.js';
+import { generateProduct } from '../../utils/generateProduct.js'; // Asegúrate de que la ruta sea correcta
+
 
 /// en controller se hace normalmente se hace metodod HTTP + Modelo para referirse al nombre del controladr
 export const getProducts = async (req, res) => {
@@ -48,8 +53,15 @@ export const getProduct = async (req, res) => {
 
 export const createProduct = async (req, res) => {
     const {title, description, price, stock, category, code} = req.body;
-
     try {
+        if (!title || !description || !code || !price || !stock || !category) {
+            throw CustomError.createError({
+                name: "Product Creation Error",
+                cause: generateProductError({title, description, price, stock, category, code}),
+                message: "Validation error in product creation",
+                code: EError.VALIDATION_ERROR
+            });
+        }
         const product = await productModel.create({title, description, price, stock, category, code});
 
         if(product) {
@@ -57,10 +69,11 @@ export const createProduct = async (req, res) => {
         }
         res.status(400).send({message: 'No se pudo crear el producto'})
     } catch (error) {
+        console.log(error);  // Aquí se muestra el mensaje de error en la consola
         if(error.code === 11000) {
             return res.status(400).send({message: `El producto de codigo ${code} ya existe`})
         }
-        res.status(500).send({message: 'Error al crear el producto'})
+        res.status(500).send({ message: error.message || 'Error al crear el producto' })
     }
 }
 
@@ -94,12 +107,49 @@ export const deleteProduct = async (req, res) => {
     }
 }
 
+
+export const createMockProduct = async (req, res) => {
+    const mockProduct = generateProduct();
+    console.log('mockProduct', mockProduct);
+    try {
+        const product = await productModel.create(mockProduct);
+        return res.status(201).send(product);
+    } catch (error) {
+        console.log(error); // Mostrar el error en la consola
+        if (error.code === 11000) {
+            // Manejar el error de duplicado, tal vez reintentando
+            return res.status(400).send({ message: 'Producto duplicado, intentando de nuevo...' });
+            // Aquí podrías implementar un reintento o manejar el error como prefieras
+        }
+        res.status(500).send({ message: error.message || 'Error al crear el producto' });
+    }
+};
+
+export const createMockProducts = async (req, res) => {
+    const numberOfProducts = parseInt(req.params.number, 10);
+    try {
+        const products = [];
+        for (let i = 0; i < numberOfProducts; i++) {
+            const mockProduct = generateProduct();
+            const createdProduct = await productModel.create(mockProduct);
+            products.push(createdProduct);
+        }
+        return res.status(201).send(products);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: error.message || 'Error al crear los productos' });
+    }
+};
+
+
 // Exportar todas las funciones juntas en un objeto
 export const productController = {
     getProducts,
     getProduct,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    createMockProduct,
+    createMockProducts
 }
 

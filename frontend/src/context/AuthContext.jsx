@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalQuantity , setTotalQuantity] = useState(0);
 
   const login = () => {
     setIsLoading(true);
@@ -47,12 +48,15 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove('jwtCookie'); // Asegúrate de borrar la cookie de JWT al cerrar sesión
   };
 
+
   const contextValue = {
     isLoggedIn,
     isLoading, // añadido al valor del contexto
     userRole,
     logout,
-    login
+    login,
+    setTotalQuantity,
+    totalQuantity
   };
 
   return (

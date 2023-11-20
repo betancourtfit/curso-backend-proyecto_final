@@ -1,14 +1,15 @@
 import './ItemCounter.css';
-import { CarritoContext } from "../../context/CarritoContext";
 import { useContext } from "react";
+import { AuthContext } from '../../context/AuthContext';
 
 
 const ItemCounter = () => {
-    const {cantidadTotal} = useContext(CarritoContext);
+    const { totalQuantity } = useContext(AuthContext);
+    console.log('quantity', totalQuantity);
 
     return (
         <div id="cart-icon">
-            <span id="cart-count">{cantidadTotal}</span>
+            <span id="cart-count">{totalQuantity}</span>
         </div>
     );
 };

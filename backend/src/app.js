@@ -9,6 +9,7 @@ import MongoStore from 'connect-mongo';
 import passport from 'passport';
 import InitializePassport from './config/passport.js';
 import cors from 'cors';
+import errorHandler from './middlewares/errors/index.js';
 
 const whiteList = ['http://localhost:5173','http://localhost:4000','http://localhost:4000/login']
 
@@ -68,6 +69,7 @@ app.use(session({
 InitializePassport();
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(errorHandler)
 
 
 // RUTAS

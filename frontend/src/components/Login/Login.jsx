@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 
 
 function Login() {
-    const [email, setEmail] = useState('juana@gmail.com');
+    const [email, setEmail] = useState('beta.juan.c@gmail.com');
     const [password, setPassword] = useState('123456');
     const { isLoggedIn, login} = useContext(AuthContext);
     const [loginAttempted, setLoginAttempted] = useState(false);

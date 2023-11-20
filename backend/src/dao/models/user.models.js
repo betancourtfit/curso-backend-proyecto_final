@@ -34,6 +34,18 @@ const userSchema = new Schema({
     cart: {
         type: Schema.Types.ObjectId,
         ref: 'carts'
+    },
+    email_verified: {
+        type: Boolean,
+        default: false
+    },
+    email_verification_code: {
+        type: String,
+        default: null
+    },
+    verification_code_expiry: {
+        type: Date,
+        default: null
     }
 })
 
@@ -41,6 +53,7 @@ userSchema.plugin(mongoosePaginate)
 
 userSchema.pre('save', async function(next) { 
     try{
+        if (!this.isNew) return next();
         const newCart = await CartManager.create();
         this.cart = newCart._id;
     } catch {

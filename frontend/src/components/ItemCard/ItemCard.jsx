@@ -1,12 +1,13 @@
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
-import {useState, useEffect } from 'react'
+import {useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom';
 import "./ItemCard.css"
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
+import { AuthContext } from '../../context/AuthContext';
 
 import ItemCount from "../ItemCount/ItemCount";
 
@@ -15,6 +16,7 @@ import ItemCount from "../ItemCount/ItemCount";
 const ItemCard = ({_id,title,price,thumbnail,stock}) => {
     const [agregarCantidad, setAgregarCantidad] = useState(0);
     const [showToast, setShowToast] = useState(false);
+    const { setTotalQuantity  } = useContext(AuthContext);
     useEffect(() => {
         console.log("Productos agregados: " + agregarCantidad);
     }, [agregarCantidad]);
@@ -23,9 +25,7 @@ const ItemCard = ({_id,title,price,thumbnail,stock}) => {
         setAgregarCantidad(cantidad);
         const token = Cookies.get('jwtCookie');
         const cart = JSON.parse(atob(token.split('.')[1]));
-        console.log('cart', cart);
         const cart_id = cart.user.cart;
-        console.log('cart_id', cart_id);
 
         let apiUrl = 'http://localhost:4000/api/carts/';
         apiUrl +=`${cart_id}/products/`;
@@ -41,9 +41,8 @@ const ItemCard = ({_id,title,price,thumbnail,stock}) => {
                     }
                 }
             );
-            console.log(res);
             if (res.status === 200) {
-                console.log("Producto agregado al carrito");
+                setTotalQuantity(res.data.payload.totalQuantity);
                 setShowToast(true);
                 setTimeout(() => setShowToast(false), 3000);
             }

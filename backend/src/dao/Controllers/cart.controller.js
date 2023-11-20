@@ -58,7 +58,8 @@ export const cleanCart = async (req, res) => {
         if (cart) {
             cart.products = [];
             await cart.save();
-            res.status(200).send({respuesta: 'ok', mensaje: cart})
+            const totalQuantity = 0
+            res.status(200).send({respuesta: 'ok', payload: { mensaje: cart, totalQuantity}});
         }
         else 
             res.status(404).send({respuesta: 'Error', mensaje: 'Cart not found'})
@@ -70,7 +71,9 @@ export const cleanCart = async (req, res) => {
 
 export const restartCart = async (cartId, products) => {
     try {
+        console.log('cartId', cartId)
         const cart = await cartModel.findById(cartId);
+        console.log('cart finded', cart)
         if (cart) {
             products.forEach(async (product) => {
                 const index = cart.products.findIndex(prod => prod.id_prod._id.toString() === product.id.toString());
@@ -104,7 +107,9 @@ export const addOrUpdateProductInCart = async (req, res) => {
                     cart.products.push({ id_prod: pid, quantity: quantity });
                 }
                 await cart.save();
-                res.status(200).send({respuesta: 'ok', mensaje: cart})
+                // calculo de la suma de quantity de products en el carrito
+                const totalQuantity = cart.products.reduce((acc, product) => acc + product.quantity, 0);
+                res.status(200).send({respuesta: 'ok', payload: {mensaje: cart, totalQuantity}})
             }
             else 
                 res.status(404).send({respuesta: 'Error', mensaje: 'Product not found'})
@@ -123,11 +128,12 @@ export const removeProductbyId = async (req, res) => {
         if (cart) {
             const product = await productModel.findById(pid);
             if (product) {
+                const quantity = product.quantity;
                 const index = cart.products.findIndex(prod => prod.id_prod._id.toString() === pid);
                 if (index !== -1) {
                     cart.products.splice(index, 1);
                     await cart.save();
-                    res.status(200).send({respuesta: 'ok', mensaje: cart})
+                    res.status(200).send({respuesta: 'ok', payload: { mensaje: cart, quantity }})
                 } else {
                     res.status(404).send({respuesta: 'Error', mensaje: `Product ${pid} not found in the cart ${cid}`})
                 }
