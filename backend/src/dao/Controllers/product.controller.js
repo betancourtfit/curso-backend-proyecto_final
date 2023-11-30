@@ -59,11 +59,13 @@ export const getProduct = async (req, res) => {
 export const createProduct = async (req, res) => {
     const {title, description, price, stock, category, code} = req.body;
     try {
+        // Registro a nivel debug
+        req.logger.debug(`Intento de creación de producto con datos faltantes: ${JSON.stringify(req.body)}`);
         if (!title || !description || !code || !price || !stock || !category) {
             throw CustomError.createError({
                 name: "Product Creation Error",
                 cause: generateProductError({title, description, price, stock, category, code}),
-                message: "Validation error in product creation",
+                message: "Parameter missing.",
                 code: EError.VALIDATION_ERROR
             });
         }
@@ -71,10 +73,14 @@ export const createProduct = async (req, res) => {
 
         if(product) {
             return res.status(201).send(product)
-        }
+        } else {
+        // Si la creación del producto falla y no lanza una excepción
+        req.logger.error('Error inesperado durante la creación del producto');
         res.status(400).send({message: 'No se pudo crear el producto'})
+        }
     } catch (error) {
-        console.log(error);  // Aquí se muestra el mensaje de error en la consola
+         // Registro de errores a nivel error
+        req.logger.error(`Error en createProduct: ${error.message}`);
         if(error.code === 11000) {
             return res.status(400).send({message: `El producto de codigo ${code} ya existe`})
         }

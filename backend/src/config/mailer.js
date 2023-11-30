@@ -23,7 +23,6 @@ const transporter = nodemailer.createTransport({
 
 // Crear una función para enviar el correo electrónico
 export const sendOrderConfirmationEmail = async (orderCode, products, totalAmount, email) => {
-    console.log('Sending order confirmation email...', orderCode, products, totalAmount, email);
     try {
         const filePath = path.join(__dirname, '../public/html/orderConfirmation.html');
         let orderConfirmationHtml = fs.readFileSync(filePath, 'utf-8');
@@ -62,7 +61,6 @@ export const sendVerificationEmail = async (email, verificationCode) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log('Correo de verificación enviado a:', email);
     } catch (error) {
         console.error('Error al enviar el correo de verificación:', error);
         throw error;

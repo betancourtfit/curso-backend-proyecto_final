@@ -7,6 +7,7 @@ import EError from '../../services/errors/enum.js';
 import { generateStockError, generateProductNotFoundError } from '../../services/errors/info.js'
 import { logStockErrors } from '../../services/errors/log.js';
 
+
 //Generar un código unico de 6 digitos que se usará como código de orden en el parametro "code" de la orden
 const generateUniqueCode = async () => {
     while (true) {
@@ -22,7 +23,7 @@ const generateUniqueCode = async () => {
 };
 
 // Crear una función para verificar y reducir el stock de cada producto
-const verifyAndReduceStock = async (products) => {
+const verifyAndReduceStock = async (req, products) => {
     let verifiedProducts = [];
     let stockErrors = [];
 
@@ -36,7 +37,7 @@ const verifyAndReduceStock = async (products) => {
             } else {
                 // Registro de error de stock insuficiente
                 const errorInfo = generateStockError(product.id, product.quantity, productInDb.stock);
-                console.error("StockError:", errorInfo);
+                req.logger.error("StockErrorlogger: " + errorInfo);  // Utilizando el logger para registrar el error
                 stockErrors.push(errorInfo);
             }
         } else {
@@ -62,10 +63,10 @@ const verifyAndReduceStock = async (products) => {
 const createOrder = async (req, res) => {
     const {cartId} = req.params;
     try {
-        const orderCode = await generateUniqueCode();
         let products = req.body.products;
-        products = await verifyAndReduceStock(products);
+        products = await verifyAndReduceStock(req, products);
         const totalAmount = req.body.totalAmount;
+        const orderCode = await generateUniqueCode();
         const newOrder = new OrderModel({...req.body, orderCode, products});
         const savedOrder = await newOrder.save();
         if (savedOrder) {
@@ -73,8 +74,7 @@ const createOrder = async (req, res) => {
                 await cartController.restartCart(cartId, products);
                 await cartController.restartCart(cartId, products);
                 const email = savedOrder.purchaser;
-                console.log('Cart restarted');
-                console.log('Sending order confirmation email...', orderCode, products, totalAmount, email);
+                // console.log('Sending order confirmation email...', orderCode, products, totalAmount, email);
                 await sendOrderConfirmationEmail(orderCode, products, totalAmount, email);
             } catch (error) {
                 await OrderModel.findByIdAndDelete(savedOrder._id);

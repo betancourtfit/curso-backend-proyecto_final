@@ -124,9 +124,7 @@ export const cleanCart = async (req, res) => {
 
 export const restartCart = async (cartId, products) => {
     try {
-        console.log('cartId', cartId)
         const cart = await cartModel.findById(cartId);
-        console.log('cart finded', cart)
         if (cart) {
             products.forEach(async (product) => {
                 const index = cart.products.findIndex(prod => prod.id_prod._id.toString() === product.id.toString());
@@ -135,7 +133,6 @@ export const restartCart = async (cartId, products) => {
                 }
             });
             await cart.save();
-            console.log('cart final', cart)
         }
         else 
             console.log("Cart not found for cleaning");

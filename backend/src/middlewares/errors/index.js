@@ -1,7 +1,7 @@
 import EError from "../../services/errors/enum.js";
 
 const errorHandler = (err, req, res, next) => {
-    console.error(err);
+
     if (err.code === EError.VALIDATION_ERROR) {
         return res.status(400).send({ mensaje: err.message });
     }
