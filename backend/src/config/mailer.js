@@ -66,3 +66,33 @@ export const sendVerificationEmail = async (email, verificationCode) => {
         throw error;
     }
 };
+
+// Función para enviar el correo electrónico de restablecimiento de contraseña
+export const sendPasswordResetEmail = async (email, token) => {
+    console.log('token', token);
+    const encodedToken = token.replace(/\./g, '_dot_'); // Reemplaza todos los puntos con '_dot_'
+    console.log('encodedToken', encodedToken);
+    console.log('¿Son iguales token y encodedToken?', token === encodedToken);
+
+    const resetPasswordUrl = `http://localhost:5173/password-reset/${encodedToken}`;
+
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Restablecimiento de contraseña',
+            html: `
+                <h1>Restablecimiento de contraseña</h1>
+                <p>Has solicitado restablecer tu contraseña. Haz clic en el enlace de abajo para establecer una nueva:</p>
+                <a href="${resetPasswordUrl}">Restablecer contraseña</a>
+                <p>Si no has solicitado restablecer tu contraseña, ignora este correo.</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('Correo de restablecimiento de contraseña enviado');
+    } catch (error) {
+        console.error('Error al enviar el correo de restablecimiento de contraseña:', error);
+        throw error;
+    }
+};

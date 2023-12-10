@@ -14,7 +14,10 @@ function Login() {
     const [isCookieValid, setIsCookieValid] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     
-
+    // Función para manejar el clic en "Olvidé mi contraseña"
+    const handleForgotPassword = () => {
+        navigate('/forgot-password'); // Asegúrate de que esta ruta esté definida en tus rutas de React Router
+    };
 
     useEffect(() => {
         console.log('isLoggedIn useffectlogin', isLoggedIn);
@@ -66,11 +69,16 @@ function Login() {
                 body: JSON.stringify({ email, password })
             });
             const data = await response.json();
-            console.log('Data', data);
-            // Configuramos la cookie aquí
-            document.cookie = `jwtCookie=${data.token}; path=/; expires=${new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toUTCString()}`;
-            // Llamamos a la función login del contexto para actualizar el estado global de autenticación
-            await login(); // Asegúrate de obtener esta función del contexto utilizando useContext
+            if (response.ok) {
+                console.log('Data', data);
+                // Configuramos la cookie aquí
+                document.cookie = `jwtCookie=${data.token}; path=/; expires=${new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toUTCString()}`;
+                // Llamamos a la función login del contexto para actualizar el estado global de autenticación
+                await login(); // Asegúrate de obtener esta función del contexto utilizando useContext
+            } else {
+                console.error('Login fallido:', data.message);
+            }
+
         } catch (error) {
             console.error(error);
             // handle login error
@@ -128,6 +136,9 @@ function Login() {
                         <button onClick={handleGithubLogin} className="btn btn-secondary btn-lg btn-block">
                             Iniciar sesión con GitHub
                         </button>
+                        <div className="mt-3">
+                            <a href="#" onClick={handleForgotPassword}>Olvidé mi contraseña</a>
+                        </div>
                         <div className="mt-4">
                     <span>¿Aún no tenés una cuenta? </span>
                     <span style={{cursor: 'pointer', color: 'blue'}} onClick={() => navigate('/signup')}>Registrate acá</span>

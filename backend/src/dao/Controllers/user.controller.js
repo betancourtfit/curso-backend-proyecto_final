@@ -2,6 +2,10 @@ import { userModel } from "../models/user.models.js";
 import CustomError from "../../services/errors/CustomError.js";
 import EError  from "../../services/errors/enum.js";
 import { generateUserError } from "../../services/errors/info.js";
+import { generateToken } from "../../utils/jwt.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../../config/mailer.js";
+import { validatePassword, hashPassword } from "../../utils/bcrypt.js";
+import jwt from 'jsonwebtoken';
 
 // controladores del modelo de usuarios
 export const getUsers = async (req, res) => {
@@ -146,6 +150,70 @@ const githubCallback = (req, res) => {
     res.status(200).send({ resultado: 'Usuario creado exitosamente.' });
 };
 
+export const requestResetPassword = async (req, res) => {
+    const { email } = req.body;
+    console.log('email', email);
+    try {
+        // 1. Verificar si el usuario existe
+        const user = await userModel.findOne({ email: email });
+        if (!user) {
+            req.logger.debug(`Restablecimiento de contraseña solicitado para email no registrado: ${email}`);
+            return res.status(404).send({ message: 'Usuario no encontrado' });
+        }
+
+        // 2. Generar token de restablecimiento
+        const resetToken = generateToken(user);  // Usando JWT para generar un token
+        // Aquí puedes añadir lógica para guardar el token en la base de datos si es necesario
+
+        // 3. Enviar email al usuario con instrucciones para restablecer la contraseña
+        await sendPasswordResetEmail(email, resetToken);  // Asumiendo que el email incluirá el token
+
+
+        res.status(200).send({ message: 'Instrucciones para restablecer la contraseña enviadas al correo electrónico.' });
+    } catch (error) {
+        req.logger.error(`Error en solicitud de restablecimiento de contraseña: ${error.message}`);
+        res.status(500).send({ message: 'Error en la solicitud de restablecimiento de contraseña' });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    const { token, newPassword } = req.body;
+    console.log('token', token);
+    console.log('newPassword', newPassword);
+    const decodedToken = token.replace(/_dot_/g, '.'); // Reemplaza '_dot_' de nuevo con puntos
+    console.log('decodedToken', decodedToken);
+
+    try {
+        // 1. Verificar el token
+        const decoded = jwt.verify(decodedToken, process.env.JWT_SECRET);
+        console.log('decoded', decoded);
+        if (!decoded || !decoded.user) {
+            return res.status(400).send({ message: 'Token inválido o expirado' });
+        }
+
+        // 2. Buscar el usuario asociado al token
+        console.log('antes de user')
+        const user = await userModel.findById(decoded.user._id);
+        console.log('user', user);
+        if (!user) {
+            return res.status(404).send({ message: 'Usuario no encontrado' });
+        }
+
+        // 3. Validar y actualizar la contraseña
+        if (!newPassword) {
+            return res.status(400).send({ message: 'Contraseña no válida' });
+        }
+
+        user.password = await hashPassword(newPassword);
+        await user.save();
+
+        res.status(200).send({ message: 'Contraseña actualizada correctamente' });
+    } catch (error) {
+        req.logger.error(`Error en restablecimiento de contraseña: ${error.message}`);
+        res.status(500).send({ message: 'Error al restablecer la contraseña' });
+    }
+};
+
 // Exportar todas las funciones juntas
 export const userController = {
     getUsers,
@@ -157,5 +225,7 @@ export const userController = {
     failRegister,
     github,
     githubCallback,
-    getUserByEmail
+    getUserByEmail,
+    requestResetPassword,
+    resetPassword
 }

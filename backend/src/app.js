@@ -12,17 +12,19 @@ import cors from 'cors';
 import errorHandler from './middlewares/errors/index.js';
 import { addLogger } from './config/logger.js';
 
-const whiteList = ['http://localhost:5173','http://localhost:4000','http://localhost:4000/login']
+const whiteList = ['http://localhost:5173', 'http://localhost:4000'];
 
 const corsOptions = {
     origin: (origin, callback) => {
-        if(whiteList.includes(origin) || !origin){
-            callback(null, true)
-        }else{
-            callback(new Error('Not allowed by CORS'))
+        if (whiteList.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
         }
-    }
-}
+    },
+    credentials: true, // permite credenciales en cross-origin
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // métodos permitidos
+};
 
 
 //Importacion de rutas
@@ -51,7 +53,7 @@ mongoose.connect(`mongodb+srv://curso_backend_juan:${process.env.passmongodb}@cl
 
 //Middleware
 app.use(express.json())
-app.use(cors({ origin: '*' }));
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser(process.env.SIGNED_COOKIE))
 app.use(session({

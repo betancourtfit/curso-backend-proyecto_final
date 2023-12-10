@@ -6,32 +6,11 @@ import { userController } from "../dao/Controllers/user.controller.js";
 
 const userRouter = Router();
 
-// userRouter.get('/', async (req, res) => {
-//     const { limit, page } = req.query;
-//     try {
-//         const users = await userManager.findAll(limit, page);
-//         res.status(200).send({respuesta: 'ok', mensaje: users})
-//     } catch (error){
-//         res.status(400).send({respuesta: 'Error', mensaje: error})
-//     }
-// })
 
 // Reemplazar llamadas a userManager con userController
 userRouter.get('/', userController.getUsers);
 userRouter.get('/:id', userController.getUser);
 
-// userRouter.get('/:id', async (req, res) => {
-//     const {id} = req.params
-//     try {
-//         const user = await userManager.findById(id);
-//         if (user)
-//             res.status(200).send({respuesta: 'ok', mensaje: user})
-//         else 
-//             res.status(404).send({respuesta: 'Error', mensaje: 'User not found'})
-//     } catch (error){
-//         res.status(400).send({respuesta: 'Error', mensaje: error})
-//     }
-// })
 
 
 userRouter.post('/signup', async (req, res, next) => {
@@ -75,12 +54,12 @@ userRouter.post('/signup', async (req, res, next) => {
 
 
 userRouter.get('/failregister', userController.failRegister);
-
 userRouter.get('/github', passport.authenticate('github', { scope: ['user:email'] }), userController.github);
 userRouter.get('/githubCallback', passport.authenticate('github', {scope: ['user:email']}), userController.githubCallback);
-
 userRouter.put('/:id', userController.updateUser);
 userRouter.delete('/:id', userController.deleteUser);
+userRouter.post('/request-reset-password', userController.requestResetPassword);
+userRouter.post('/reset-password', userController.resetPassword);
 
 userRouter.post('/verify-code', async (req, res) => {
     const { email, verificationCode } = req.body;
