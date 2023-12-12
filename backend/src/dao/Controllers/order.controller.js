@@ -1,4 +1,5 @@
 import { OrderModel } from '../models/orders.models.js';
+import { userModel } from '../models/user.models.js';
 import { cartController } from './cart.controller.js';
 import { sendOrderConfirmationEmail } from '../../config/mailer.js';
 import { productModel } from '../models/products.models.js';
@@ -61,21 +62,50 @@ const verifyAndReduceStock = async (req, products) => {
  * @returns {Object} The saved order.
  */
 const createOrder = async (req, res) => {
-    const {cartId} = req.params;
+    const { cartId } = req.params;
+    const { user_id, products: initialProducts } = req.body;
+    console.log('BODY', req.body)
+    console.log('userid', user_id)
+
     try {
         let products = req.body.products;
         products = await verifyAndReduceStock(req, products);
-        const totalAmount = req.body.totalAmount;
+        // Obtener detalles del producto y calcular el totalAmount
+        let totalAmount = 0;
+        for (let product of products) {
+            const productInDb = await productModel.findById(product.id);
+            if (productInDb) {
+                totalAmount += productInDb.price * product.quantity;
+            }
+        }
+        // Verificar si el usuario es premium
+        let discount = 0;
+        const user = await userModel.findById(user_id);
+        if (user && user.rol === 'premium') {
+            discount = totalAmount * 0.1; // 10% de descuento
+        }
+        const finalAmount = totalAmount - discount;
+        console.log('BODY', req.body.user_id)
+        console.log('EMAIL user', user.email)
         const orderCode = await generateUniqueCode();
-        const newOrder = new OrderModel({...req.body, orderCode, products});
+        const newOrder = new OrderModel({
+            ...req.body,
+            orderCode,
+            products,
+            totalAmount,
+            discount,
+            finalAmount,
+            purchaser: user.email // Asegúrate de que el correo electrónico del usuario se esté estableciendo aquí
+        });
         const savedOrder = await newOrder.save();
         if (savedOrder) {
             try {
                 await cartController.restartCart(cartId, products);
                 await cartController.restartCart(cartId, products);
                 const email = savedOrder.purchaser;
+                console.log('EMAIL', email)
                 // console.log('Sending order confirmation email...', orderCode, products, totalAmount, email);
-                await sendOrderConfirmationEmail(orderCode, products, totalAmount, email);
+                await sendOrderConfirmationEmail(orderCode, products, totalAmount, discount, finalAmount, email);
             } catch (error) {
                 await OrderModel.findByIdAndDelete(savedOrder._id);
                 await cartController.restartCart(cartId, products, true);

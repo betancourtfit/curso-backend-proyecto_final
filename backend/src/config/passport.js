@@ -66,7 +66,8 @@ const InitializePassport = () => {
                 email, 
                 password, 
                 age,
-                password: hashPass});
+                password: hashPass,
+                previousPasswords: [hashPass],});
             console.log('createUser', createUser);
 
             return done(null, createUser, { message: 'Usuario creado exitosamente.' });
@@ -82,25 +83,28 @@ const InitializePassport = () => {
             try {
                 const user = await findUserByEmail(email);
 
-                //Si el usuario no existe
+                // Si el usuario no existe o la contraseña es incorrecta
                 if (!user) {
-                    return done(null, false, { message: 'El usuario no existe.' });
+                    return done(null, false, { message: 'Credenciales inválidas.' });
                 }
 
-                //Si el usuario existe, validar la contraseña
-                if (!validatePassword(password, user.password)) {
-                    console.log('Contraseña incorrecta')
-                    return done(null, false, { message: 'La contraseña es incorrecta.' });
+                // Validar la contraseña
+                const isPasswordValid = await validatePassword(password, user.password);
+
+                // Si la contraseña es incorrecta
+                if (!isPasswordValid) {
+                    return done(null, false, { message: 'Credenciales inválidas.' });
                 }
 
-                //Si el usuario existe y la contraseña es correcta, retornar el usuario
-                console.log('Usuario logueado correctamente')
+                // Si el usuario existe y la contraseña es correcta, retornar el usuario
                 return done(null, user);
             }
             catch (error) {
-                return done(error);
+                // Manejo genérico de errores
+                return done(error, false, { message: 'Error en el proceso de inicio de sesión.' });
             }
-    }))
+    }));
+
 
 
     passport.use('github', new GithubStrategy({

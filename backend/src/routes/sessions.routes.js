@@ -60,7 +60,7 @@ sessionRouter.post('/login', passport.authenticate('login',{failureRedirect: 'fa
 
 sessionRouter.get('/faillogin', (req, res) => {
     console.log('Error al iniciar sesión');
-    res.send({error: 'Failed login'})
+    res.status(401).json({ error: 'Credenciales inválidas.' });
 });
 
 
@@ -113,7 +113,7 @@ sessionRouter.get('/testJWT', passport.authenticate('jwt', { session: false }), 
     res.send(req.user)
 })
 
-sessionRouter.get('/current', passportError('jwt'), authorization(['admin','user']), (req, res) => {
+sessionRouter.get('/current', passportError('jwt'), authorization(['user','admin','premium']), (req, res) => {
     res.send(req.user)
 })
 

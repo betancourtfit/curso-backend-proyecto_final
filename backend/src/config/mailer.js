@@ -22,18 +22,26 @@ const transporter = nodemailer.createTransport({
 });
 
 // Crear una función para enviar el correo electrónico
-export const sendOrderConfirmationEmail = async (orderCode, products, totalAmount, email) => {
+export const sendOrderConfirmationEmail = async (orderCode, products, totalAmount, discount, finalAmount, email) => {
     try {
+        console.log('email send', email)
         const filePath = path.join(__dirname, '../public/html/orderConfirmation.html');
         let orderConfirmationHtml = fs.readFileSync(filePath, 'utf-8');
 
         let productsHtml = products.map(product => 
-            `<tr><td>${product.title}</td><td>${product.quantity}</td></tr>`
+            `<tr>
+                <td>${product.title}</td>
+                <td>${product.quantity}</td>
+                <td>${product.price.toFixed(2)}</td>
+                <td>${(product.quantity * product.price).toFixed(2)}</td>
+            </tr>`
         ).join('');
 
         orderConfirmationHtml = orderConfirmationHtml.replace('{{orderId}}', orderCode)
-                                                     .replace('{{productsRows}}', productsHtml)
-                                                     .replace('{{totalAmount}}', totalAmount);
+            .replace('{{productsRows}}', productsHtml)
+            .replace('{{totalAmount}}', totalAmount.toFixed(2))
+            .replace('{{discount}}', discount.toFixed(2))
+            .replace('{{finalAmount}}', `<strong>${finalAmount.toFixed(2)}</strong>`);
 
         let mailOptions = {
             from: 'TaDa',

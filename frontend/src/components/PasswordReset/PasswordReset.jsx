@@ -1,6 +1,7 @@
 // PasswordReset.js
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const PasswordReset = () => {
     const [newPassword, setNewPassword] = useState('');
@@ -27,13 +28,27 @@ const PasswordReset = () => {
                 body: JSON.stringify({ newPassword, token })
             })
             const responseData = await response.json(); // Convertir la respuesta a JSON
-
+            console.log('responseData', responseData);
             if (response.ok) {
                 setMessage(responseData.message);
                 navigate('/login'); // Redirigir al login después del cambio exitoso
             } else {
-                // Manejar el error en caso de que la respuesta no sea exitosa
-                setMessage(responseData.message);
+                // Verificar si el error es debido a un token expirado
+                if (responseData.message === 'Token expirado') {
+                    Swal.fire({
+                        title: 'Token Expirado',
+                        text: 'Tu enlace de restablecimiento de contraseña ha expirado. Por favor, solicita un nuevo enlace.',
+                        icon: 'warning',
+                        confirmButtonText: 'Aceptar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            navigate('/forgot-password'); // Redirige a la página de solicitud de restablecimiento
+                        }
+                    });
+                } else {
+                    // Manejar otros tipos de errores
+                    setMessage(responseData.message);
+                }
             }
         } catch (error) {
             setMessage(error.response.data.message);

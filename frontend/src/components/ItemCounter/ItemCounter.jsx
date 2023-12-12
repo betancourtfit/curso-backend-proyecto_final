@@ -5,7 +5,6 @@ import { AuthContext } from '../../context/AuthContext';
 
 const ItemCounter = () => {
     const { totalQuantity } = useContext(AuthContext);
-    console.log('quantity', totalQuantity);
 
     return (
         <div id="cart-icon">

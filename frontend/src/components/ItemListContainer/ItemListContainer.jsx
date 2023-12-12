@@ -19,10 +19,8 @@ const ItemListContainer = () => {
         }
         const token = Cookies.get('jwtCookie');
         if(!token){
-            console.log("no hay token itemlist")
             navigate('/login');
         }
-        console.log('token en itemlist',token)
             // Realizar la petición a la API
     fetch(apiUrl, {
         method: 'GET',
@@ -32,7 +30,6 @@ const ItemListContainer = () => {
         }
       })
       .then(response => {
-        console.log(response)
         if (response.status === 401) {
           // Redirigir al usuario a la página de inicio de sesión
           window.location.href = '/login';
@@ -40,7 +37,6 @@ const ItemListContainer = () => {
         return response.json();
       })
       .then(data => {
-        console.log(data.payload)
         setProductos(data.payload);
       })
       .catch((error) => console.log("el error es", error));

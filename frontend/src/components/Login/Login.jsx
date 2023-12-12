@@ -7,12 +7,14 @@ import Cookies from 'js-cookie';
 
 function Login() {
     const [email, setEmail] = useState('beta.juan.c@gmail.com');
-    const [password, setPassword] = useState('123456');
+    const [password, setPassword] = useState('1234567');
     const { isLoggedIn, login} = useContext(AuthContext);
     const [loginAttempted, setLoginAttempted] = useState(false);
     const navigate = useNavigate();
     const [isCookieValid, setIsCookieValid] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState(''); // Nuevo estado para el mensaje de error
+
     
     // Función para manejar el clic en "Olvidé mi contraseña"
     const handleForgotPassword = () => {
@@ -20,7 +22,6 @@ function Login() {
     };
 
     useEffect(() => {
-        console.log('isLoggedIn useffectlogin', isLoggedIn);
         if (isLoggedIn) {
             setIsLoading(true);
             try {
@@ -68,20 +69,22 @@ function Login() {
                 },
                 body: JSON.stringify({ email, password })
             });
-            const data = await response.json();
             if (response.ok) {
-                console.log('Data', data);
+                const data = await response.json();
                 // Configuramos la cookie aquí
                 document.cookie = `jwtCookie=${data.token}; path=/; expires=${new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toUTCString()}`;
                 // Llamamos a la función login del contexto para actualizar el estado global de autenticación
                 await login(); // Asegúrate de obtener esta función del contexto utilizando useContext
             } else {
-                console.error('Login fallido:', data.message);
+                const errorData = await response.json();
+                setErrorMessage(errorData.error || 'Ocurrió un error durante el inicio de sesión. Por favor, inténtalo de nuevo.');
             }
 
         } catch (error) {
-            console.error(error);
             // handle login error
+            console.error(error);
+            setErrorMessage('Ocurrió un error de red. Por favor, inténtalo de nuevo.');
+
         }
     };
 
@@ -90,7 +93,6 @@ function Login() {
         fetch('http://localhost:4000/api/sessions/github')
         .then(response => response.json())
         .then(data => {
-            console.log('Ddata',data)
             document.cookie = `jwtCookie=${data.token}; path=/; expires=${new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toUTCString()}`
             navigate('/')
             // handle successful login
@@ -103,6 +105,7 @@ function Login() {
             <div className="row justify-content-center">
                 <div className="col-md-6">
                     <h2 className="mb-4">Iniciar sesión</h2>
+                    {errorMessage && <div className="alert alert-danger">{errorMessage}</div>} {/* Mostrar mensaje de error */}
                     <form onSubmit={handleSubmit}>
                         <div className="form-group mb-3">
                             <label htmlFor="email">Correo electrónico</label>

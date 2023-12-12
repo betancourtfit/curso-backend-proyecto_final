@@ -76,7 +76,7 @@ export const createUser = async (req, res) => {
                 cause: generateUserError({first_name, last_name, email, password, age}),
                 message: "Missing fields",
                 code: EError.INVALID_TYPES_ERROR
-            })
+            })  
         }
         const user = await userModel.create({first_name, last_name, email, password, age});
         console.log('user cre', user);
@@ -178,10 +178,7 @@ export const requestResetPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
     const { token, newPassword } = req.body;
-    console.log('token', token);
-    console.log('newPassword', newPassword);
     const decodedToken = token.replace(/_dot_/g, '.'); // Reemplaza '_dot_' de nuevo con puntos
-    console.log('decodedToken', decodedToken);
 
     try {
         // 1. Verificar el token
@@ -192,9 +189,7 @@ export const resetPassword = async (req, res) => {
         }
 
         // 2. Buscar el usuario asociado al token
-        console.log('antes de user')
         const user = await userModel.findById(decoded.user._id);
-        console.log('user', user);
         if (!user) {
             return res.status(404).send({ message: 'Usuario no encontrado' });
         }
@@ -204,15 +199,53 @@ export const resetPassword = async (req, res) => {
             return res.status(400).send({ message: 'Contraseña no válida' });
         }
 
+        // 4. Verificar que la nueva contraseña no sea una de las antiguas
+        const isOldPassword = user.previousPasswords && await Promise.any(user.previousPasswords.map(async (oldPassword) => {
+            return validatePassword(newPassword, oldPassword);
+        }));
+
+        if (isOldPassword) {
+            return res.status(400).send({ message: 'No puedes usar una contraseña antigua.' });
+        }
+
+        // 5. Actualizar la contraseña
         user.password = await hashPassword(newPassword);
+        // 6. almaceno la contraseña 
+        user.previousPasswords.push(user.password);
+        user.previousPasswords = user.previousPasswords.slice(-5);
         await user.save();
 
         res.status(200).send({ message: 'Contraseña actualizada correctamente' });
     } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(400).send({ message: 'Token expirado' });
+        }
         req.logger.error(`Error en restablecimiento de contraseña: ${error.message}`);
         res.status(500).send({ message: 'Error al restablecer la contraseña' });
     }
 };
+
+export const toggleUserRoleByEmail = async (req, res) => {
+    const { email } = req.params;
+
+    try {
+        const user = await userModel.findOne({ email: email });
+        if (!user) {
+            return res.status(404).send({ message: 'Usuario no encontrado' });
+        }
+
+        // Cambiar el rol del usuario
+        user.rol = user.rol === 'premium' ? 'user' : 'premium';
+        await user.save();
+
+        res.status(200).send({ message: `Rol del usuario actualizado a ${user.rol}` });
+    } catch (error) {
+        console.error('Error al actualizar el rol del usuario:', error);
+        res.status(500).send({ message: 'Error al actualizar el rol del usuario' });
+    }
+};
+
+
 
 // Exportar todas las funciones juntas
 export const userController = {
@@ -227,5 +260,6 @@ export const userController = {
     githubCallback,
     getUserByEmail,
     requestResetPassword,
-    resetPassword
+    resetPassword,
+    toggleUserRoleByEmail
 }

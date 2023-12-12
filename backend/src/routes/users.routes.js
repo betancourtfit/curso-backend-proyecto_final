@@ -60,6 +60,8 @@ userRouter.put('/:id', userController.updateUser);
 userRouter.delete('/:id', userController.deleteUser);
 userRouter.post('/request-reset-password', userController.requestResetPassword);
 userRouter.post('/reset-password', userController.resetPassword);
+userRouter.put('/premium/:email', userController.toggleUserRoleByEmail);
+
 
 userRouter.post('/verify-code', async (req, res) => {
     const { email, verificationCode } = req.body;

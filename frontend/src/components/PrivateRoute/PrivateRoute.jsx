@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 
-const PrivateRoute = ({ component: Component, roles = ['user'] }) => {
+const PrivateRoute = ({ component: Component, roles = ['user','premium'] }) => {
   const { isLoggedIn, userRole, isLoading } = useContext(AuthContext);
   const location = useLocation();
 

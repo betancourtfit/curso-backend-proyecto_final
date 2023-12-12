@@ -11,6 +11,15 @@ const orderSchema = new Schema({
         type: Number,
         required: true
     },
+    discount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    finalAmount: {
+        type: Number,
+        required: true
+    },
     products: [{
         id: {
             type: Schema.Types.ObjectId,
