@@ -1,3 +1,16 @@
+# **Práctica de integración sobre tu ecommerce**
+
+### Sistema de recuperación
+✓ El usuario ahora cuenta en el login con un link para ir al recupero de contraseña, ingresando su mail
+✓ El link de recuperacion llega via mail que incluye el token que dura 1 hora y funciona con jwt. tiene una codificacion y decodificacion de los puntos que separan los componentes para evitar que genere conflicto con la ruta URL
+✓ Al clickear lleva al usuario a la pagina de recuperacion que toma la contraseña y la confirmacion, al hacer clic e enviar valida que sean iguales y envia al backend que en caso de token valido devuelve una notificacion que redirige al login pero si el token esta expirado muestra un modal indicativo y redirige a solicitar nuevamente el link
+
+### Sistema de usuarios premium
+✓ Ahora el rol de usuario contempla la opcion premium, que puede ser modificado entre user y premium con un PUT al endpoint http://localhost:4000/api/users/premium/:email
+✓ El usuario premium al momento de crear la orden, se le aplica un 10% de descuento que se ve reflejado en el mail de confirmacion. Se conservan el monto original, descuento y montofinal para fines de poder dar visibilidad y trazabiliad
+
+
+
 # **Entrega Mocking y manejo de errores**
 
 ### Mocking con faker para creacion de productos
