@@ -11,6 +11,31 @@ import InitializePassport from './config/passport.js';
 import cors from 'cors';
 import errorHandler from './middlewares/errors/index.js';
 import { addLogger } from './config/logger.js';
+// imortar swagger
+import swaggerjsdoc from 'swagger-jsdoc';
+import swaggerUiExpress from 'swagger-ui-express';
+
+//Configuracion de swagger
+const swaggerOptions = {
+    definition: {
+        openapi: '3.1.0',
+        info: {
+            title: 'Proyecto final CoderHouse',
+            version: '1.0.0',
+            description: 'API de productos y usuarios en el proyecto final del curso de backend de CoderHouse',
+            contact: {
+                name: 'Juan Betancourt',
+                email: 'beta.juan.c@gmail.com'
+            }
+        },
+        
+    },
+    apis: [ `${__dirname}/docs/**/*.yaml`]
+};
+
+const specs = swaggerjsdoc(swaggerOptions);
+
+
 
 const whiteList = ['http://localhost:5173', 'http://localhost:4000'];
 
@@ -74,7 +99,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(errorHandler)
 app.use(addLogger);
-
+app.use('/apidocs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
 
 // RUTAS
 app.use('/api',apisRouter)
