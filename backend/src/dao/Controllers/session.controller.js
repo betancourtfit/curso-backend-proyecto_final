@@ -1,4 +1,4 @@
-import { generateToken, authToken } from "../utils/jwt.js";
+import { generateToken, authToken, verifyToken } from "../utils/jwt.js";
 
 
 async function handleSuccessfulLogin(req, res, user) {
@@ -112,6 +112,13 @@ const updateWelcome = (req, res) => {
     }
 }
 
+const current = async(req,res)=>{
+    const token = req.token;
+    const user = verifyToken(token);
+    if(user)
+        return res.send({status:"success",payload:user})
+}
+
 // exporto todas las funcione juntas en un sessionsController por defecto
 export default {
     login,
@@ -119,5 +126,6 @@ export default {
     github,
     githubCallback,
     logout,
-    updateWelcome
+    updateWelcome,
+    current
 }

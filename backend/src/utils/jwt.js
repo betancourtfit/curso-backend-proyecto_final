@@ -39,3 +39,21 @@ export const authToken = (req, res, next) => {
 
 
 }
+
+// funcion de verificacion de token
+export const verifyToken = (req, res, next) => {
+    const token = req.cookies.jwtCookie;
+
+    if (!token) {
+        return res.status(401).send({ error: 'Usuario no autenticado' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (error, credential) => {
+        if (error) {
+            return res.status(403).send({ error: 'Usuario no autorizado, token invalido' });
+        }
+    });
+
+    req.user = credential.user;
+    next();
+};

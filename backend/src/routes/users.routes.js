@@ -10,6 +10,8 @@ const userRouter = Router();
 // Reemplazar llamadas a userManager con userController
 userRouter.get('/', userController.getUsers);
 userRouter.get('/:id', userController.getUser);
+userRouter.get('/email/:email', userController.getUserByEmail);
+
 
 
 
@@ -22,23 +24,18 @@ userRouter.post('/signup', async (req, res, next) => {
         }
         try {
             if (!user) throw new Error(info.message);
-            console.log('3')
             // Generar código de verificación
 
             const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Código de 6 dígitos
             const expiryTime = new Date(new Date().getTime() + 30 * 60000); // 30 minutos desde ahora
 
             // Actualizar usuario con el código y la hora de expiración
-            console.log('5')
             user.email_verification_code = verificationCode;
             user.verification_code_expiry = expiryTime;
-            console.log('6')
             // Guardar el usuario actualizado
             await user.save();
-            console.log('7')
             // Generar y enviar el correo con el código de verificación
-            await sendVerificationEmail(user.email, verificationCode);
-            console.log('8')
+            // await sendVerificationEmail(user.email, verificationCode);
             req.logIn(user, function(err) {
                 if (err) {
                     throw new Error(err);

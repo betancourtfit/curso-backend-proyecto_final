@@ -26,14 +26,21 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.3.1",
-    "nodemon": "^3.0.1"
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
   },
   "name": "curso-backend-clase8",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "test": "mocha test/User.test.js",
+    "usersupertest": "mocha test/user.supertest.test.js",
+    "productssupertest": "mocha test/products.supertest.test.js",
+    "cartssupertest": "mocha test/carts.supertest.test.js"
   },
   "keywords": [],
   "author": "",

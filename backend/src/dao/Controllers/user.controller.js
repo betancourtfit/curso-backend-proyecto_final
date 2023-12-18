@@ -48,14 +48,11 @@ const findUserByEmail = async (email) => {
 };
 
 export const getUserByEmail = async (req, res) => {
-    console.log('req.body', req);
-    const email = req;
-    console.log('email get', email);
+    const {email} = req.params;
 
     try {
         // const user = await userModel.findOne({ email: email });
         const user = await findUserByEmail(email);
-        console.log('user getbymail', user);
         if(user) {
             return res.status(200).send(user)
         }
@@ -66,7 +63,6 @@ export const getUserByEmail = async (req, res) => {
 }
 
 export const createUser = async (req, res) => {
-    console.log('req.body.', req);
     const {first_name, last_name, email, password, age} = req;
     try {
         if(!first_name|| !last_name || !email || !password || !age) {
@@ -79,7 +75,6 @@ export const createUser = async (req, res) => {
             })  
         }
         const user = await userModel.create({first_name, last_name, email, password, age});
-        console.log('user cre', user);
         if(user) {
             return res.status(201).send(user)
         }
@@ -183,7 +178,6 @@ export const resetPassword = async (req, res) => {
     try {
         // 1. Verificar el token
         const decoded = jwt.verify(decodedToken, process.env.JWT_SECRET);
-        console.log('decoded', decoded);
         if (!decoded || !decoded.user) {
             return res.status(400).send({ message: 'Token inválido o expirado' });
         }

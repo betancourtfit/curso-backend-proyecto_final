@@ -60,8 +60,8 @@ export const createProduct = async (req, res) => {
     const {title, description, price, stock, category, code} = req.body;
     try {
         // Registro a nivel debug
-        req.logger.debug(`Intento de creación de producto con datos faltantes: ${JSON.stringify(req.body)}`);
         if (!title || !description || !code || !price || !stock || !category) {
+            req.logger.debug(`Intento de creación de producto con datos faltantes: ${JSON.stringify(req.body)}`);
             throw CustomError.createError({
                 name: "Product Creation Error",
                 cause: generateProductError({title, description, price, stock, category, code}),

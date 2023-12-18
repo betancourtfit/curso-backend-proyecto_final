@@ -42,7 +42,6 @@ sessionRouter.post('/login', passport.authenticate('login',{failureRedirect: 'fa
         if(!req.user){
             res.status(401).send({ resultado: 'Usuario invalido' });
         }
-        console.log('req.user', req.user);
         await handleSuccessfulLogin(req, res, req.user);
         const token = await generateToken(req.session.passport.user);
         res.status(200).json({
