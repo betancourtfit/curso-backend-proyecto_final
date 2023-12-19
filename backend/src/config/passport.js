@@ -42,7 +42,6 @@ const InitializePassport = () => {
     }, async (req, username, password, done) => {
 
         const { first_name, last_name, email, age } = req.body;
-        console.log('req.body', req.body);
         try {
             //Buscar el usuario en la BD
             const user = await findUserByEmail(email);
@@ -68,7 +67,6 @@ const InitializePassport = () => {
                 age,
                 password: hashPass,
                 previousPasswords: [hashPass],});
-            console.log('createUser', createUser);
 
             return done(null, createUser, { message: 'Usuario creado exitosamente.' });
             

@@ -1,5 +1,4 @@
 import {Router } from "express"
-import { userManager } from "../dao/models/userManager.js";
 import passport from 'passport';
 import { sendVerificationEmail } from "../config/mailer.js";
 import { userController } from "../dao/Controllers/user.controller.js"; 
@@ -58,41 +57,8 @@ userRouter.delete('/:id', userController.deleteUser);
 userRouter.post('/request-reset-password', userController.requestResetPassword);
 userRouter.post('/reset-password', userController.resetPassword);
 userRouter.put('/premium/:email', userController.toggleUserRoleByEmail);
+userRouter.post('/verify-code', userController.verifyCode);
 
 
-userRouter.post('/verify-code', async (req, res) => {
-    const { email, verificationCode } = req.body;
-
-    try {
-        const user = await userManager.findByEmail(email);
-
-        if (!user) {
-            throw new Error('Usuario no encontrado');
-        }
-
-        if (user.email_verified) {
-            throw new Error('El usuario ya ha sido verificado');
-        }
-
-        if (user.email_verification_code !== verificationCode) {
-            throw new Error('Código de verificación incorrecto');
-        }
-
-        if (user.verification_code_expiry < new Date()) {
-            throw new Error('El código de verificación ha expirado');
-        }
-
-        user.email_verified = true;
-        user.email_verification_code = null;
-        user.verification_code_expiry = null;
-
-        await user.save();
-
-        res.status(200).send({ resultado: 'Usuario verificado exitosamente.' });
-    } catch (error) {
-        console.error('Hubo un error al verificar el usuario:', error);
-        res.status(500).send({ mensaje: `Error al verificar: ${error.message}` });
-    }
-});
 
 export default userRouter

@@ -239,6 +239,41 @@ export const toggleUserRoleByEmail = async (req, res) => {
     }
 };
 
+export const verifyCode = async (req, res) => {
+    const { email, verificationCode } = req.body;
+
+    try {
+        const user = await userModel.findOne({ email: email });
+
+        if (!user) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        if (user.email_verified) {
+            throw new Error('El usuario ya ha sido verificado');
+        }
+
+        if (user.email_verification_code !== verificationCode) {
+            throw new Error('Código de verificación incorrecto');
+        }
+
+        if (user.verification_code_expiry < new Date()) {
+            throw new Error('El código de verificación ha expirado');
+        }
+
+        user.email_verified = true;
+        user.email_verification_code = null;
+        user.verification_code_expiry = null;
+
+        await user.save();
+
+        res.status(200).send({ message: 'Usuario verificado correctamente' });
+    } catch (error) {
+        console.error('Error al verificar el usuario:', error);
+        res.status(500).send({ message: 'Error al verificar el usuario' });
+    }
+};
+
 
 
 // Exportar todas las funciones juntas
@@ -255,5 +290,6 @@ export const userController = {
     getUserByEmail,
     requestResetPassword,
     resetPassword,
-    toggleUserRoleByEmail
+    toggleUserRoleByEmail,
+    verifyCode
 }

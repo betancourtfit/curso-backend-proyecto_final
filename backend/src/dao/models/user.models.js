@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import mongoosePaginate from 'mongoose-paginate-v2';
-import { CartManager } from './cartManager.js';
+import { cartModel } from './carts.models.js';
 
 
 const userSchema = new Schema({
@@ -55,13 +55,21 @@ const userSchema = new Schema({
 userSchema.plugin(mongoosePaginate)
 
 userSchema.pre('save', async function(next) { 
-    try{
+    try {
         if (!this.isNew) return next();
-        const newCart = await CartManager.create();
+
+        const newCart = await cartModel.create({});
+
+        if (!newCart) {
+            console.error('Failed to create a new cart. newCart is null.');
+            return next(new Error('Failed to create a new cart.'));
+        }
+
         this.cart = newCart._id;
-    } catch {
+    } catch (error) {
+        console.error('Error in pre-save hook:', error);
         return next(error);
     }
-} )
+});
 //Parametro 1:Nombre coleccion - Parametro 2: Schema 
 export const userModel = model('users', userSchema)
