@@ -32,3 +32,7 @@ export const generateDatabaseError = (errorDetail) => {
 export const generateStockError = (productId, requestedQuantity, availableStock) => {
     return `Cantidad insuficiente en stock. Producto ID: ${productId}, Cantidad solicitada: ${requestedQuantity}, Stock disponible: ${availableStock}`;
 };
+
+export const generateDocumentationError = () => {
+    return 'Actualización a usuario premium rechazada debido a la falta de documentación requerida.';
+}

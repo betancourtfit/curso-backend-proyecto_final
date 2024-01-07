@@ -97,13 +97,13 @@ app.use(session({
 InitializePassport();
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(errorHandler)
+
 app.use(addLogger);
 app.use('/apidocs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
 
 // RUTAS
 app.use('/api',apisRouter)
-
+app.use(errorHandler)
 // Socket.io
 const io = new Server(server);
 

@@ -25,7 +25,7 @@ describe(' test user model CRUD en la ruta api/users', function () {
     })
 
     //obtene todos los suarios mediante get
-    it('obtener todsos los usuarios', async () => {
+    it('obtener todos los usuarios', async () => {
         const users = await userModel.find();
         // assert.strictEqual(Array.isArray(users), true);
         // expect(Array.isArray(users)).to.be.true;
@@ -33,7 +33,7 @@ describe(' test user model CRUD en la ruta api/users', function () {
     })
 
     it('obtener un usuario por id', async () => {
-        const user = await userModel.findById('657653c5636999b868955498');
+        const user = await userModel.findById('6535bea5e9a5226f47c05bd3');
         expect(user).to.have.property('_id')
     })
 

@@ -8,7 +8,8 @@ const EError = {
     BAD_REQUEST_ERROR:7,
     FORBIDDEN_ERROR:8,
     INVALID_TYPE_ERROR:9,
-    DATABASE_ERROR:10
+    DATABASE_ERROR:10,
+    DOCUMENTATION_ERROR:11
 }
 
 export default EError;

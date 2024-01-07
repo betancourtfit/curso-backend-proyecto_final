@@ -1,7 +1,7 @@
 import EError from "../../services/errors/enum.js";
 
 const errorHandler = (err, req, res, next) => {
-
+    console.error(err);
     if (err.code === EError.VALIDATION_ERROR) {
         return res.status(400).send({ mensaje: err.message });
     }
@@ -27,6 +27,9 @@ const errorHandler = (err, req, res, next) => {
         return res.status(500).send({ mensaje: err.message });
     }
     if (err.code === EError.INVALID_TYPE_ERROR) {
+        return res.status(400).send({ mensaje: err.message });
+    }
+    if (err.code === EError.DOCUMENTATION_ERROR) {
         return res.status(400).send({ mensaje: err.message });
     }
     res.status(500).send({ mensaje: 'Error interno del servidor' });

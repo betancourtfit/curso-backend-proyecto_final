@@ -93,6 +93,9 @@ const InitializePassport = () => {
                 if (!isPasswordValid) {
                     return done(null, false, { message: 'Credenciales inválidas.' });
                 }
+                // Actualizar last_connection
+                user.last_connection = new Date();
+                await user.save();
 
                 // Si el usuario existe y la contraseña es correcta, retornar el usuario
                 return done(null, user);

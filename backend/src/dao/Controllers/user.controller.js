@@ -1,7 +1,7 @@
 import { userModel } from "../models/user.models.js";
 import CustomError from "../../services/errors/CustomError.js";
 import EError  from "../../services/errors/enum.js";
-import { generateUserError } from "../../services/errors/info.js";
+import { generateUserError, generateDocumentationError } from "../../services/errors/info.js";
 import { generateToken } from "../../utils/jwt.js";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../../config/mailer.js";
 import { validatePassword, hashPassword } from "../../utils/bcrypt.js";
@@ -219,26 +219,6 @@ export const resetPassword = async (req, res) => {
     }
 };
 
-export const toggleUserRoleByEmail = async (req, res) => {
-    const { email } = req.params;
-
-    try {
-        const user = await userModel.findOne({ email: email });
-        if (!user) {
-            return res.status(404).send({ message: 'Usuario no encontrado' });
-        }
-
-        // Cambiar el rol del usuario
-        user.rol = user.rol === 'premium' ? 'user' : 'premium';
-        await user.save();
-
-        res.status(200).send({ message: `Rol del usuario actualizado a ${user.rol}` });
-    } catch (error) {
-        console.error('Error al actualizar el rol del usuario:', error);
-        res.status(500).send({ message: 'Error al actualizar el rol del usuario' });
-    }
-};
-
 export const verifyCode = async (req, res) => {
     const { email, verificationCode } = req.body;
 
@@ -274,6 +254,82 @@ export const verifyCode = async (req, res) => {
     }
 };
 
+export const uploadUserDocuments = async (req, res) => {
+    const userId = req.params.uid;
+    const files = req.files;
+
+    if (!files || files.length === 0) {
+        return res.status(400).send({ message: 'No se subieron archivos.' });
+    }
+
+    try {
+        const user = await userModel.findById(userId);
+
+        if (!user) {
+            return res.status(404).send({ message: 'Usuario no encontrado.' });
+        }
+
+        const updatedDocuments = files.map(file => ({
+            name: file.originalname,
+            reference: file.path // O cualquier lógica para generar la referencia
+        }));
+
+        user.documents.push(...updatedDocuments);
+        await user.save();
+
+        res.status(200).send({ message: 'Documentos subidos exitosamente.', documents: user.documents });
+    } catch (error) {
+        console.error('Error al subir documentos:', error);
+        res.status(500).send({ message: 'Error al subir documentos' });
+    }
+};
+
+
+export const upgradeToPremium = async (req, res) => {
+    const userId = req.params.uid;
+
+    try {
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).send({ message: 'Usuario no encontrado.' });
+        }
+        if(user.rol === 'premium'){
+            return res.status(400).send({ message: 'El usuario ya es premium.' });
+        }
+        // Verificar si hay al menos un archivo en '/uploads/documents/' que contenga "document-" en su nombre
+        const hasRequiredDocument = user.documents.some(doc => {
+            const fileName = doc.reference.split('/').pop(); // Extrae el nombre del archivo de la ruta
+            const regex = /document-/;
+            return regex.test(fileName);
+        });
+
+        if (!hasRequiredDocument) {
+            const error = CustomError.createError({
+                name: "Documentation Error",
+                message: "Falta documentación requerida para ser usuario premium.",
+                code: EError.DOCUMENTATION_ERROR,
+                cause: generateDocumentationError()
+            }); 
+            console.log('error al inicio',error)
+            throw error;
+        }
+
+        // Actualizar el rol del usuario a premium
+        user.rol = 'premium';
+        await user.save();
+        res.status(200).send({ message: 'Usuario actualizado a premium.' });
+    } catch (error) {
+        console.error('Error al actualizar a premium:', error);
+        console.log('Error al actualizar a premium:', {
+            message: error.message,
+            name: error.name,
+            code: error.code,
+            cause: error.cause,
+            stack: error.stack
+        });
+        res.status(500).send({ message: 'Error al actualizar a premium.' });
+    }
+};
 
 
 // Exportar todas las funciones juntas
@@ -290,6 +346,7 @@ export const userController = {
     getUserByEmail,
     requestResetPassword,
     resetPassword,
-    toggleUserRoleByEmail,
-    verifyCode
+    verifyCode,
+    uploadUserDocuments,
+    upgradeToPremium
 }

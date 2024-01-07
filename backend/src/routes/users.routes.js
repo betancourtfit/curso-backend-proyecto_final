@@ -2,6 +2,7 @@ import {Router } from "express"
 import passport from 'passport';
 import { sendVerificationEmail } from "../config/mailer.js";
 import { userController } from "../dao/Controllers/user.controller.js"; 
+import upload from '../config/multerConfig.js';
 
 const userRouter = Router();
 
@@ -56,8 +57,10 @@ userRouter.put('/:id', userController.updateUser);
 userRouter.delete('/:id', userController.deleteUser);
 userRouter.post('/request-reset-password', userController.requestResetPassword);
 userRouter.post('/reset-password', userController.resetPassword);
-userRouter.put('/premium/:email', userController.toggleUserRoleByEmail);
+userRouter.put('/premium/:uid', userController.upgradeToPremium);
 userRouter.post('/verify-code', userController.verifyCode);
+userRouter.post('/:uid/documents', upload.array('document', 4), userController.uploadUserDocuments);
+
 
 
 

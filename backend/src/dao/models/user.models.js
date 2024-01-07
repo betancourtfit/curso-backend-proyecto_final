@@ -49,7 +49,16 @@ const userSchema = new Schema({
     verification_code_expiry: {
         type: Date,
         default: null
+    },
+    documents: [{
+        name: String,
+        reference: String
+    }],
+    last_connection: {
+        type: Date,
+        default: null
     }
+
 })
 
 userSchema.plugin(mongoosePaginate)
