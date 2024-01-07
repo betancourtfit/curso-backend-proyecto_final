@@ -27,7 +27,5 @@ dist-ssr
 *.sw?
 
 # uploads
-!uploads/.gitkeep
-uploads/documents/*
-!uploads/documents/.gitkeep
+uploads/*
 
