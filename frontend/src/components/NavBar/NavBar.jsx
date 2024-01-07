@@ -36,6 +36,9 @@ const NavBar = () => {
             console.error('Error al hacer logout:', error);
         }
     };
+    const goToProfile = () => {
+        navigate('/profile'); // Redirige a la ruta del perfil
+    };
 
     return (
         <div>
@@ -63,10 +66,10 @@ const NavBar = () => {
                                 title="Mi Perfil"
                                 id="basic-nav-dropdown"
                             >
-                                <NavDropdown.Item href="#action/3.1">
-                                    Mis Datos
+                                <NavDropdown.Item onClick={goToProfile}>
+                                    Mi Cuenta
                                 </NavDropdown.Item>
-                                <NavDropdown.Item href="#action/3.2">
+                                <NavDropdown.Item >
                                     Mis pedidos
                                 </NavDropdown.Item>
                                 <NavDropdown.Divider />

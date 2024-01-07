@@ -1,4 +1,3 @@
-import ItemListContainer from './components/ItemListContainer/ItemListContainer';
 import NavBar from './components/NavBar/NavBar';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -16,6 +15,7 @@ import { AuthProvider } from './context/AuthContext';
 import Category from './components/Category/Category';
 import PasswordReset from './components/PasswordReset/PasswordReset';
 import ForgotPassword from './components/ForgotPassword/ForgotPassword';
+import Profile from './components/Profile/Profile';
 
 <link
   rel="stylesheet"
@@ -40,6 +40,7 @@ function App() {
                 <Route path='/forgot-password' element={<ForgotPassword/>}/>
                 <Route path="/signup" element={<SignupForm/>}/>
                 <Route path="/login" element={<Login/>}/>
+                <Route path="/profile" element={<PrivateRoute component={Profile}/>}/>
                 <Route path="*" element={<h2>Seccion en construccion</h2>}/>
               </Routes>
         </BrowserRouter>

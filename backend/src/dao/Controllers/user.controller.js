@@ -285,13 +285,18 @@ export const uploadUserDocuments = async (req, res) => {
 };
 
 
-export const upgradeToPremium = async (req, res) => {
+export const upgradeToPremium = async (req, res, next) => {
     const userId = req.params.uid;
 
     try {
         const user = await userModel.findById(userId);
         if (!user) {
-            return res.status(404).send({ message: 'Usuario no encontrado.' });
+            throw CustomError.createError({
+                name: "User Not Found",
+                message: "Usuario no encontrado.",
+                code: EError.NOT_FOUND_ERROR,
+                cause: "usuario no encontrado"
+            }); 
         }
         if(user.rol === 'premium'){
             return res.status(400).send({ message: 'El usuario ya es premium.' });
@@ -304,14 +309,12 @@ export const upgradeToPremium = async (req, res) => {
         });
 
         if (!hasRequiredDocument) {
-            const error = CustomError.createError({
+            throw CustomError.createError({
                 name: "Documentation Error",
                 message: "Falta documentación requerida para ser usuario premium.",
                 code: EError.DOCUMENTATION_ERROR,
                 cause: generateDocumentationError()
             }); 
-            console.log('error al inicio',error)
-            throw error;
         }
 
         // Actualizar el rol del usuario a premium
@@ -327,7 +330,12 @@ export const upgradeToPremium = async (req, res) => {
             cause: error.cause,
             stack: error.stack
         });
-        res.status(500).send({ message: 'Error al actualizar a premium.' });
+        // Si el error no es uno de los personalizados
+        if (error.code) {
+            next(error);
+        } else {
+            res.status(500).send({ message: 'Error al actualizar a premium.' });
+        }
     }
 };
 

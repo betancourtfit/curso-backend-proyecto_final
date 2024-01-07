@@ -1,3 +1,14 @@
+# **Desafio carga de documentos, upgrade premium y last_connection**
+### Premisas
+- [x]Se implementó un nuevo atributo de ususario "last_connection" que se actualiza en cada inicio de sesion, no se actualiza en el logout porque en este caso se maneja solo logout del lado del cliente 
+- [x]Se implementó un endpoint de caga de uno o varios documentos a traves de Multer, almacenados en la ruta /src/upload/documents
+    1. Backend: método PUT en el endpoint '/api/users/:uid/documents', no requiere autentificacion
+    2. Frontend: Desde la ruta '/profile' se muestran los datos del usuario y un campo de carga de documentacion
+- [x]Se actualizó la función de Upgarde a PREMIUM 
+    1. backend: en el endpoint 'api/users/premium/:uid' se puede solicitar el upgrade, que evalua la existencia de al menos un documento cargado en la propiedad 'documents' del usuario que posea en la referencia la regulaer expresion "/document-", en caso de que no exista se devuelve un error personalizado de falta de documentacion.
+    2.frontend: del la ruta '/profile' al cargar al menos un document de forma exitosa, en el modal se ofrece la posibilidad de solicitar el upgrade a premium y si existe el documento en el perfil de usuario se muestra la confirmación exitosa del upgrade (Aun no actualiza del lado del cliente el nuevo rol en la cookie hasta el proximo login)
+
+
 # **Módulos de testing para proyecto final**
 ### Premisas
 - [x]Se implementó el script usersupertest que hace testing de las siguientes funciones:

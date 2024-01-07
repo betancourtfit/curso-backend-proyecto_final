@@ -1,36 +1,41 @@
 import EError from "../../services/errors/enum.js";
 
-const errorHandler = (err, req, res, next) => {
-    console.error(err);
-    if (err.code === EError.VALIDATION_ERROR) {
-        return res.status(400).send({ mensaje: err.message });
+const errorHandler = (error, req, res, next) => {
+    console.error(error);
+    if (error.code === EError.VALIDATION_ERROR) {
+        return res.status(400).send({ mensaje: error.message });
     }
-    if (err.code === EError.AUTHENTICATION_ERROR) {
-        return res.status(401).send({ mensaje: err.message });
+    if (error.code === EError.AUTHENTICATION_ERROR) {
+        return res.status(401).send({ mensaje: error.message });
     }
-    if (err.code === EError.AUTHORIZATION_ERROR) {
-        return res.status(403).send({ mensaje: err.message });
+    if (error.code === EError.AUTHORIZATION_ERROR) {
+        return res.status(403).send({ mensaje: error.message });
     }
-    if (err.code === EError.NOT_FOUND_ERROR) {
-        return res.status(404).send({ mensaje: err.message });
+    if (error.code === EError.NOT_FOUND_ERROR) {
+        return res.status(404).send({ mensaje: error.message });
     }
-    if (err.code === EError.BAD_REQUEST_ERROR) {
-        return res.status(400).send({ mensaje: err.message });
+    if (error.code === EError.BAD_REQUEST_ERROR) {
+        return res.status(400).send({ mensaje: error.message });
     }
-    if (err.code === EError.FORBIDDEN_ERROR) {
-        return res.status(403).send({ mensaje: err.message });
+    if (error.code === EError.FORBIDDEN_ERROR) {
+        return res.status(403).send({ mensaje: error.message });
     }
-    if (err.code === EError.INTERNAL_SERVER_ERROR) {
-        return res.status(500).send({ mensaje: err.message });
+    if (error.code === EError.INTERNAL_SERVER_ERROR) {
+        return res.status(500).send({ mensaje: error.message });
     }
-    if (err.code === EError.DATABASE_ERROR) {
-        return res.status(500).send({ mensaje: err.message });
+    if (error.code === EError.DATABASE_ERROR) {
+        return res.status(500).send({ mensaje: error.message });
     }
-    if (err.code === EError.INVALID_TYPE_ERROR) {
-        return res.status(400).send({ mensaje: err.message });
+    if (error.code === EError.INVALID_TYPE_ERROR) {
+        return res.status(400).send({ mensaje: error.message });
     }
-    if (err.code === EError.DOCUMENTATION_ERROR) {
-        return res.status(400).send({ mensaje: err.message });
+    if (error.code === EError.DOCUMENTATION_ERROR) {
+        return res.status(400).send({ mensaje: error.message });
+    }
+    // Para errores no catalogados
+    if (!errorStatusMap[error.code]) {
+        console.error(error);
+        res.status(500).send({ mensaje: 'Error interno del servidor.' });
     }
     res.status(500).send({ mensaje: 'Error interno del servidor' });
 }
