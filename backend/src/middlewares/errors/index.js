@@ -33,9 +33,9 @@ const errorHandler = (error, req, res, next) => {
         return res.status(400).send({ mensaje: error.message });
     }
     // Para errores no catalogados
-    if (!errorStatusMap[error.code]) {
+    if (error.code === EError.GENERIC_ERROR) {
         console.error(error);
-        res.status(500).send({ mensaje: 'Error interno del servidor.' });
+        return res.status(500).send({ mensaje: error.message });
     }
     res.status(500).send({ mensaje: 'Error interno del servidor' });
 }

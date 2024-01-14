@@ -16,6 +16,7 @@ import Category from './components/Category/Category';
 import PasswordReset from './components/PasswordReset/PasswordReset';
 import ForgotPassword from './components/ForgotPassword/ForgotPassword';
 import Profile from './components/Profile/Profile';
+import UsersDashboard from './components/UsersDashboard/UsersDashboard';
 
 <link
   rel="stylesheet"
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/signup" element={<SignupForm/>}/>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/profile" element={<PrivateRoute component={Profile}/>}/>
+                <Route path="/admin/users" element={<PrivateRoute component={UsersDashboard}/>}/>
                 <Route path="*" element={<h2>Seccion en construccion</h2>}/>
               </Routes>
         </BrowserRouter>

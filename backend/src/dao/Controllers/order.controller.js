@@ -1,5 +1,6 @@
 import { OrderModel } from '../models/orders.models.js';
 import { userModel } from '../models/user.models.js';
+import { cartModel } from '../models/carts.models.js';
 import { cartController } from './cart.controller.js';
 import { sendOrderConfirmationEmail } from '../../config/mailer.js';
 import { productModel } from '../models/products.models.js';
@@ -62,34 +63,54 @@ const verifyAndReduceStock = async (req, products) => {
  * @returns {Object} The saved order.
  */
 const createOrder = async (req, res) => {
-    const { cartId } = req.params;
-    const { user_id, products: initialProducts } = req.body;
-    console.log('BODY', req.body)
-    console.log('userid', user_id)
-
+    const { cid } = req.params;
+    const { address } = req.body;
+    console.log('body', req.body)
     try {
-        let products = req.body.products;
+        // Obtener el carrito del usuario
+        const cart = await cartModel.findById(cid);
+        console.log('cart', cart)
+        if (!cart) {
+            return res.status(404).json({ message: 'Carrito no encontrado' });
+        }
+        // Buscar el usuario basado en el cart_id
+        const user = await userModel.findOne({ cart: cid });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Utilizar los productos del carrito
+        let products = cart.products.map(item => ({
+            id: item.id_prod._id,
+            price: item.id_prod.price,
+            quantity: item.quantity,
+            title: item.id_prod.title,
+            code: item.id_prod.code
+        }));
+        console.log('products', products)
         products = await verifyAndReduceStock(req, products);
         // Obtener detalles del producto y calcular el totalAmount
         let totalAmount = 0;
+        let totalQuantity = 0;
         for (let product of products) {
             const productInDb = await productModel.findById(product.id);
             if (productInDb) {
                 totalAmount += productInDb.price * product.quantity;
+                totalQuantity += product.quantity;
             }
         }
         // Verificar si el usuario es premium
         let discount = 0;
-        const user = await userModel.findById(user_id);
         if (user && user.rol === 'premium') {
             discount = totalAmount * 0.1; // 10% de descuento
         }
         const finalAmount = totalAmount - discount;
-        console.log('BODY', req.body.user_id)
         console.log('EMAIL user', user.email)
         const orderCode = await generateUniqueCode();
         const newOrder = new OrderModel({
-            ...req.body,
+            address: req.body.address,
+            user_id: user._id,
+            totalQuantity,
             orderCode,
             products,
             totalAmount,
@@ -100,15 +121,14 @@ const createOrder = async (req, res) => {
         const savedOrder = await newOrder.save();
         if (savedOrder) {
             try {
-                await cartController.restartCart(cartId, products);
-                await cartController.restartCart(cartId, products);
+                await cartController.restartCart(cid, products);
                 const email = savedOrder.purchaser;
                 console.log('EMAIL', email)
                 // console.log('Sending order confirmation email...', orderCode, products, totalAmount, email);
                 await sendOrderConfirmationEmail(orderCode, products, totalAmount, discount, finalAmount, email);
             } catch (error) {
                 await OrderModel.findByIdAndDelete(savedOrder._id);
-                await cartController.restartCart(cartId, products, true);
+                await cartController.restartCart(cid, products, true);
                 return res.status(500).json({ message: error.message });
             }
         }

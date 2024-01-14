@@ -13,14 +13,15 @@ export const getUsers = async (req, res) => {
     let query = {};  
     let options = {
         lim: parseInt(limit) || 10,
-        pag: parseInt(page) || 1
+        pag: parseInt(page) || 1,
+        select: 'first_name last_name email rol'
     };
 
     try {
         const users = await userModel.paginate(query, options);
 
         if(users) {
-            return res.status(200).send(users)
+            return res.status(200).send({payload: users})
         }
         res.status(404).send({message: 'No se encontraron usuarios'})
     } catch (error) {
@@ -339,6 +340,48 @@ export const upgradeToPremium = async (req, res, next) => {
     }
 };
 
+export const deleteUserByLastConnection = async (req, res) => {
+    try {
+        const twoDaysAgo = new Date(new Date().setDate(new Date().getDate() - 2));
+        
+        // Encuentra los usuarios que serán eliminados
+        const usersToDelete = await userModel.find({
+            $or: [
+                { last_connection: { $lt: twoDaysAgo } },
+                { last_connection: { $exists: false } },
+                { last_connection: null }
+            ]
+        }).select('email first_name');
+
+        // Extrae los correos electrónicos y nombres de los usuarios
+        const userEmails = usersToDelete.map(user => ({ email: user.email, name: user.first_name }));
+
+        // Elimina los usuarios
+        const deletedUsers = await userModel.deleteMany({
+            $or: [
+                { last_connection: { $lt: twoDaysAgo } },
+                { last_connection: { $exists: false } },
+                { last_connection: null }
+            ]
+        });
+
+        // Envía correos electrónicos de notificación
+        userEmails.forEach(async user => {
+            await sendAccountDeletionEmail(user.email, user.name);
+        });
+
+        if(deletedUsers.deletedCount === 0) {
+            return res.status(404).send({message: 'No hay usuarios para eliminar con la condición especificada'});
+        }
+        return res.status(200).send({message: `Usuarios eliminados: ${deletedUsers.deletedCount}`});
+    } catch (error) {
+        res.status(500).send({message: 'Error al eliminar usuarios'});
+    }
+};
+
+
+
+
 
 // Exportar todas las funciones juntas
 export const userController = {
@@ -356,5 +399,6 @@ export const userController = {
     resetPassword,
     verifyCode,
     uploadUserDocuments,
-    upgradeToPremium
+    upgradeToPremium,
+    deleteUserByLastConnection
 }

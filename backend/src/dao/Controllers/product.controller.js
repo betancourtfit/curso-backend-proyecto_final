@@ -89,11 +89,11 @@ export const createProduct = async (req, res) => {
 }
 
 export const updateProduct = async (req, res) => {
-    const {code} = req.params;
+    const {id} = req.params;
     const {name, description, price, stock, image, category} = req.body;
 
     try {
-        const product = await productModel.findOneAndUpdate({ code: code }, {name, description, price, stock, image, category}, { new: true })
+        const product = await productModel.findByIdAndUpdate(id, {name, description, price, stock, image, category}, { new: true })
         if(product) {
             return res.status(200).send(product)
         }

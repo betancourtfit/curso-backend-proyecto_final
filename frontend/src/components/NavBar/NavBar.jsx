@@ -83,6 +83,14 @@ const NavBar = () => {
                                 </NavDropdown.Item> )
                                 }
                             </NavDropdown>
+                            <NavDropdown
+                                title="Admin"
+                                id="basic-nav-dropdown"
+                            >
+                                <NavDropdown.Item href="/admin/users">
+                                    Usuarios
+                                </NavDropdown.Item>
+                            </NavDropdown>
                             <CartWidget />
                         </Nav>
                     </Navbar.Collapse>

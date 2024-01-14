@@ -35,43 +35,44 @@ const InitializePassport = () => {
 
     }))
 
-    //Definir la estrategia local
+    // Definir la estrategia local
     passport.use('signup', new LocalStrategy({
         usernameField: 'email',
         passReqToCallback: true
     }, async (req, username, password, done) => {
-
         const { first_name, last_name, email, age } = req.body;
         try {
-            //Buscar el usuario en la BD
+            // Buscar el usuario en la BD
             const user = await findUserByEmail(email);
-            //Si el usuario ya existe
+            // Si el usuario ya existe
             if (user) {
-                return done(null, false, { message: 'El usuario ya existe' });
+                throw CustomError.createGenericError('El usuario ya existe', 'User already exists');
             }
-            if(!first_name|| !last_name || !email || !password || !age) {
-                return done(CustomError.createError({
-                    name: "Use creation error",
-                    cause: generateUserError({first_name, last_name, email, password, age}),
+            // Validar campos obligatorios
+            if (!first_name || !last_name || !email || !password || !age) {
+                throw CustomError.createError({
+                    name: "User creation error",
+                    cause: generateUserError({ first_name, last_name, email, password, age }),
                     message: "Missing fields",
                     code: EError.INVALID_TYPES_ERROR
-                }), false);
+                });
             }
-            //Si el usuario no existe aun, crearlo
+            // Si el usuario no existe aún, crearlo
             const hashPass = await hashPassword(password);
             const createUser = await userModel.create({
-                first_name, 
-                last_name, 
-                email, 
-                password, 
-                age,
+                first_name,
+                last_name,
+                email,
                 password: hashPass,
-                previousPasswords: [hashPass],});
+                age,
+                previousPasswords: [hashPass]
+            });
 
             return done(null, createUser, { message: 'Usuario creado exitosamente.' });
-            
+
         } catch (error) {
-            return done(error);
+            console.error('Hubo un error al registrar el usuario:', error);
+            return done(error, false);
         }
     }));
 

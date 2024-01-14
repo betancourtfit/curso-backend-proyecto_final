@@ -11,16 +11,16 @@ const userRouter = Router();
 userRouter.get('/', userController.getUsers);
 userRouter.get('/:id', userController.getUser);
 userRouter.get('/email/:email', userController.getUserByEmail);
-
-
-
+userRouter.delete('/', userController.deleteUserByLastConnection);
+userRouter.delete('/uid', userController.deleteUser)
 
 userRouter.post('/signup', async (req, res, next) => {
-    passport.authenticate('signup', async (err, user, info) => {
-        if (err || !user) {
+    passport.authenticate('signup', async (error, user, info) => {
+        console.log('error', error);
+        if (error || !user) {
+            console.log('llega aqui')
             // Maneja el error o la falta del usuario
-            console.error('Hubo un error al registrar el usuario:', err || info.message);
-            return res.status(500).send({ mensaje: `Error al registrar: ${err.message || info.message}` });
+            return next(error);
         }
         try {
             if (!user) throw new Error(info.message);

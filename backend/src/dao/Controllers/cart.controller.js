@@ -96,9 +96,10 @@ export const createCartLogic = async () => {
     
 
 export const cleanCart = async (req, res) => {
-    const {id} = req.params
+    const {cid} = req.params
     try {
-        const cart = await cartModel.findById(id);
+        const cart = await cartModel.findById(cid);
+        console.log('cart', cart)
         if (cart) {
             cart.products = [];
             await cart.save();
@@ -154,9 +155,13 @@ export const restartCart = async (cartId, products) => {
 export const addOrUpdateProductInCart = async (req, res) => {
     const {cid, pid} = req.params;
     const {quantity} = req.body;
+    console.log('quantity', quantity)   
+    console.log('pid', pid)
+    console.log('cid', cid)
 
     try {
         const cart = await cartModel.findById(cid);
+        console.log('cart', cart)
         if (!cart) {
             throw CustomError.createError({
                 name: "CartNotFoundError",
@@ -167,11 +172,12 @@ export const addOrUpdateProductInCart = async (req, res) => {
         }
 
         const product = await productModel.findById(pid);
+        console.log('product', product)
         if (!product) {
             throw CustomError.createError({
                 name: "ProductNotFoundError",
                 cause: generateProductNotFoundError(pid),
-                message: `Product with ID ${pid} not found`,
+                message: `Product with ID  not found`,
                 code: EError.NOT_FOUND_ERROR
             });
         }
@@ -186,6 +192,9 @@ export const addOrUpdateProductInCart = async (req, res) => {
         const totalQuantity = cart.products.reduce((acc, product) => acc + product.quantity, 0);
         res.status(200).send({respuesta: 'ok', payload: {mensaje: cart, totalQuantity}});
     } catch (error) {
+        if(error.code) {
+            next(error);
+        }
         if (error.name === 'MongoError' || error.name === 'MongooseError') {
             throw CustomError.createError({
                 name: "DatabaseError",
@@ -206,9 +215,11 @@ export const removeProductbyId = async (req, res) => {
     const {cid, pid} = req.params
     try {
         const cart = await cartModel.findById(cid);
+        console.log('cart', cart)
         if (cart) {
             const product = await productModel.findById(pid);
             if (product) {
+                console.log('product', product)
                 const quantity = product.quantity;
                 const index = cart.products.findIndex(prod => prod.id_prod._id.toString() === pid);
                 if (index !== -1) {

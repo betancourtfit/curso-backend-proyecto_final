@@ -104,3 +104,27 @@ export const sendPasswordResetEmail = async (email, token) => {
         throw error;
     }
 };
+
+// mailer.js
+export const sendAccountDeletionEmail = async (email, first_name) => {
+    try {
+        const filePath = path.join(__dirname, '../public/html/accountDeletionNotification.html');
+        let emailHtml = fs.readFileSync(filePath, 'utf-8');
+
+        emailHtml = emailHtml.replace('{{first_name}}', first_name);
+
+        let mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Notificación de Eliminación de Cuenta',
+            html: emailHtml
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('Email de notificación de eliminación de cuenta enviado a:', email);
+    } catch (error) {
+        console.log('Error al enviar email de notificación de eliminación de cuenta:', error);
+        throw error;
+    }
+};
+
