@@ -1,7 +1,6 @@
 //node_module
 import express from 'express'
 import mongoose from 'mongoose'
-import { Server }  from 'socket.io'
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
@@ -104,48 +103,7 @@ app.use('/apidocs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
 // RUTAS
 app.use('/api',apisRouter)
 app.use(errorHandler)
-// Socket.io
-const io = new Server(server);
 
-io.on('connection', (socket)=> {
-    console.log('servidor de socket io conectado')
-
-    socket.on('add-message', async ({email, mensaje}) => {
-        console.log(mensaje)
-        await messageModel.create({email: email, message: mensaje})
-        const messages = await messageModel.find();
-        socket.emit('show-messages', messages);
-    })
-
-    socket.on('display-inicial', async() =>{
-        const messages = await messageModel.find();
-        socket.emit('show-messages', messages);
-    })
-
-    socket.on('add-product', async (nuevoProd) => {
-        const { title, description, price, code, stock, category } = nuevoProd;
-        await productModel.create({title: title, description: description, price: price, code: code, stock: stock, category: category});
-        const products = await productModel.find();
-        socket.emit('show-products', products);
-    })
-
-    socket.on('update-products', async () => {
-        const products = await productModel.find();
-        socket.emit('show-products', products);
-    });
-
-    socket.on('remove-product', async ({ code }) => {
-        try {
-            console.log("inicio remove socket")
-            await productModel.deleteOne({ code: code });
-            const products = await productModel.find();
-            socket.emit('show-products', products);
-        }catch (error) {
-            console.error('Error eliminando producto:', error);
-        }
-
-    })
-})
 
 
 
